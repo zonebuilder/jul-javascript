@@ -1,0 +1,35 @@
+{
+  "name": "jul-javascript",
+  "version": "1.2.0",
+  "description": "JUL - The JavaScript UI Language",
+  "main": "index.html",
+  "scripts": {
+    "make": "node_modules/.bin/gulp",
+	"test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zonebuilder/jul-javascript.git"
+  },
+  "keywords": [
+    "UI",
+    "generator"
+  ],
+  "author": "The Zonebuilder",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/zonebuilder/jul-javascript/issues"
+  },
+  "homepage": "https://github.com/zonebuilder/jul-javascript#readme",
+  "devDependencies": {
+    "gulp": "*",
+    "gulp-add-src": "*",
+    "gulp-clean": "*",
+    "gulp-concat": "*",
+    "gulp-jshint": "*",
+    "gulp-load-plugins": "*",
+    "gulp-strip-comments": "*",
+    "gulp-uglify": "*",
+    "jsdoc2": "*"
+  }
+}

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>JUL - The JavaScript UI Language</title>
+    <link rel='shortcut icon' href='media/favicon.ico' />
+  <style type="text/css">
+  html, body {
+  	width: 100%;
+	  margin: 0;
+  	padding: 0;
+  	background-color: #ddd;
+  }
+  img {
+  	border: 0;
+  }
+  body {
+  	font-family: "Helvetica",Helvetica, sans-serif;
+  	font-size: 13px;
+  	color: #222;
+  }
+  #content {
+  	width: 966px;
+	  margin: 10px auto;
+	  padding: 15px 25px;
+	  background-color: #fff !important;
+  }
+  #footer {
+  	text-align: center;
+  	font-size: x-small;
+  }
+  </style>
+  </head>
+  <body>
+    <div id="content">
+	<h1>About</h1>
+    <p>The JavaScript UI Language (JUL) is a configuration and
+      instantiation module for the JavaScript frameworks. It can be used
+      with any framework that accepts a configuration object as
+      a constructor parameter, or with a custom factory for the other
+      frameworks.</p>
+    <p>JUL parses a tree of configuration objects, and creates the
+      runtime components in the expected order and membership. For the
+      most uses, after this step, you will have your application's user
+      interface up and running. </p>
+    <h1>Features</h1>
+    <ul>
+      <li>implements programming by configuration for event-driven UI
+        JavaScript frameworks</li>
+      <li>top-down and bottom-up creation of the component tree</li>
+      <li>converts a DOM XML document into a configuration tree</li>
+      <li>supports configuration inheritance and parser
+        meta-information inside a configuration node</li>
+      <li>fully configurable parsing and ability to map node IDs as
+        component instances</li>
+      <li>serialization of the configuration tree to JavaScript or JSON
+        source code</li>
+    </ul>
+    <h1>Sample code</h1>
+    <p>This is how JUL looks. For complete examples, 
+	please consult the <em>Examples</em> section.
+    </p>
+    <table>
+      <tbody>
+        <tr>
+          <td valign="top" width="450"><strong>Framework sample code</strong>
+          </td>
+          <td valign="top" width="450"><strong>DOM sample code</strong>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top" width="450">
+            <pre>var oUiConfig = {
+    xclass: 'FWK.Widgets.DataView',
+    id: 'APP.mainView',
+    autoDraw: false,
+    overflow: 'hidden',
+    children: [{
+        xclass: 'FWK.Widgets.VLayout',
+        id:'VLayout0',
+        children: [{
+            xclass: 'FWK.Widgets.ToolStrip',
+            id: 'ToolStrip0',
+            visibilityMode: 'multiple'
+        }, {
+            xclass: 'FWK.Widgets.HLayout',
+            id: 'HLayout0',
+            children: [{
+                xclass: 'FWK.Widgets.VLayout',
+                id: 'Navigation',
+                width: 200,
+                showResizeBar: true
+                }, {
+                xclass: 'FWK.Widgets.TabSet',
+                   id: 'TabSet1',
+                tabs: [{
+                    xclass: 'FWK.Widgets.Tab',
+                    title: 'Tab1',
+                    id: 'Tab1'
+                }, {
+                    xclass: 'FWK.Widgets.Tab',
+                    title: 'Tab2',
+                    id: 'Tab2'
+                }],
+                showTabScroller:true,
+                showTabPicker:true,
+                destroyPanes:false,
+                showEdges:false
+            }]
+        }]
+    }],
+    width: '100%',
+    height: '100%'
+};
+var oParser = new JUL.UI.Parser({
+    classProperty: 'xclass',
+    childrenProperty: 'children',
+    membersProperties: ['tabs'],
+    idProperty: 'id'
+});
+oParser.create(oUiConfig);
+APP.mainView.render();
+</pre>
+          </td>
+          <td valign="top" width="450">
+            <pre>var oUiConfig = {
+    tag: 'dialog',
+    id: 'dialog-browse',
+    title: 'Open',
+    width: 500,
+    height: 250,
+    hidden: true,
+    children: [
+        {tag: 'listbox', id: 'listbox-browse', selType: 'single', 
+            flex: 1, children: [
+            {tag: 'listhead', children: [
+                {tag: 'listheader', label: 'Name', width: 300}
+        ]},
+            {tag: 'listbody', children: [
+                {tag: 'listitem', children: [
+                    {tag: 'listcell', label: 'File 1'}
+                ]},
+                {tag: 'listitem', children: [
+                    {tag: 'listcell', label: 'File 2'}
+                ]}
+            ]}
+        ]}
+    ],
+};
+var oParser = new JUL.UI.Parser({
+    defaultClass: 'xul',
+    useTags: true,
+    tagProperty: 'tag',
+    customFactory: 'JUL.UI.createDom',
+    topDown: true
+});
+var oDialog = oParser.create(oUiConfig);
+oDialog.show();
+</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <h1>Examples</h1>
+    <p>Below are examples for using JUL. Just click the picture to run, 
+    and then select <em>View page source</em> in your browser to see the commented code.
+    </p>
+    <table>
+      <tbody>
+        <tr>
+          <td valign="top" width="450"><strong>JUL + Ample SDK Example</strong>
+          </td>
+          <td valign="top" width="450"><strong>JUL + YUI Example</strong>
+          </td>
+        </tr>
+        <tr>
+        	<td valign="top" width="450" height="340">
+			<a target="_blank" href="examples/example2.html"><img width="440" height="330" alt="JUL + Ample SDK Example" src="media/example2.png" /></a>
+        	</td>
+        	<td valign="top" width="450" height="340">
+			<a target="_blank" href="examples/example3.html"><img width="440" height="330" alt="JUL + YUI Example" src="media/example3.png" /></a>
+        	</td>
+        </tr>
+        <tr>
+          <td valign="top" width="450"><strong>JUL + SmartClient Example</strong>
+          </td>
+          <td valign="top" width="450"><strong>XML2JUL</strong>
+          </td>
+        </tr>
+        <tr>
+        	<td valign="top" width="450" height="340">
+			<a target="_blank" href="examples/example4.html"><img width="440" height="330" alt="JUL + SmartClient Example" src="media/example4.png" /></a>
+        	</td>
+        	<td valign="top" width="450" height="340">
+			<a target="_blank" href="examples/xml2jul.html"><img width="440" height="330" alt="XML2JUL" src="media/xml2jul.png" /></a>
+        	</td>
+        </tr>
+    </tbody>
+	</table>
+	<h1>Resources</h1>
+	<ul>
+		<li><a target="_blank" href="docs/index.html">API Reference</a></li>
+		<li><a target="_blank" href="http://www.google.com/search?hl=en&num=50&start=0&safe=0&filter=0&nfpr=1&q=JUL+The+JavaScript+UI+Language+The+Zonebuilder">Articles and tutorials on cloud</a></li>
+		<li><a target="_blank" href="https://groups.google.com/forum/#!forum/jul-javascript">JUL Forum</a></li>
+	</ul>
+	<h1>Support</h1>
+	<p>Please feel free to support the activities of project development, documenting, bug-fixing, 
+	forum posting, and blogging on JUL.<br />Your contribution will translate into positive action.
+	</p>
+	<p><a rel="nofollow" target="_blank" href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=U253KWM5LK5XA&lc=US&item_name=The%20Zonebuilder&item_number=JUL%20Support&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG_global%2egif%3aNonHosted">
+	<img alt="PayPal - The safer, easier way to pay online." src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG_global.gif" /></a>
+	</p>
+  </div>
+  <div id="footer">
+  <script type="text/javascript">
+  document.write('Copyright &copy; 2012 - ' + (new Date()).getFullYear() + ' The Zonebuilder');
+  </script>
+  </div>
+  </body>
+</html>

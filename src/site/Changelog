@@ -1,0 +1,27 @@
+v1.2 (2016-03-21):
+  * moving to opensource while keeping it free for any use
+  * JavaScript strict mode & jshint compliance
+v1.1 (2015-10-31):
+  * added support to JUL.ns(), JUL.get() for dotted path segment escaping
+  * added decorator function to JUL.UI.obj2str() for transforming serialized JavaScript
+v1.0.7 (2015-05-16):
+  * augmentented JUL with Date serialization
+  * serialization support for 'new' calls
+v1.0.6 (2015-04-28):
+  * updated project links
+v1.0.5.2 (2015-04-20):
+  * minor changes
+v1.0.5.1 (2015-02-18):
+  * minor enhancements in parser code
+v1.0.5 (2014-11-01):
+  * add JUL,Ref,key() method
+  * renamed JUL.Ref.value() to JUL.Ref.val() to shorten all JUL.Ref methods to 3 characters
+  * improved JUL.UI.obj2str output formatting    
+v1.0.1 (2013-12-20):
+  * moved utility Ref class under JUL namespace
+  * keeping the case-sensitivity for component IDs
+  * basic type-casting for the XML to JUL conversion
+  * added two more examples
+
+v1.0 (2013-10-15):
+  * initial release
