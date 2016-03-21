@@ -31,8 +31,8 @@ Rub the following shell commands in order:
 ```
 The release will be in 'build' folder.
 
- Downloads & User support
- ------------------------
+Downloads & User support
+------------------------
 
-[http://sourceforge.net/projects/jul-javascript/](http://sourceforge.net/projects/jul-javascript/)
+[jul-javascript project on SourceForge](http://sourceforge.net/projects/jul-javascript/)
 
