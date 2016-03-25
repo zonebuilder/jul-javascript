@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language module version 1.2
+	JUL - The JavaScript UI Language module version 1.2.1
 	Copyright (c) 2012 - 2016 The Zonebuilder (zone.builder@gmx.com)
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GPLv2 or later; LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -116,7 +116,7 @@ JUL = {
 		JUL version
 		@type	String
 	*/
-	version: '1.2',
+	version: '1.2.1',
 	/**
 		Applies an object or an array of objects to a given object
 		@param	{Object}	oSource	The source object to apply to
@@ -183,9 +183,11 @@ JUL = {
 		@param	{Mixed}	[ sWhat]	Optional string to trim at both ends
 		@returns	{String}	Trimmed string
 	*/
-	trim: function(sText, sWhat) {
+	trim: function(sText, sWhat, bFromMap) {
 		if (typeof sText !== 'string') { sText = sText.toString(); }
 		if (!sText) { return sText; }
+		/* cope with Array.prototype.map */
+		if (bFromMap) { sWhat = ''; }
 		if (!sWhat && sWhat !== 0) {
 			if (typeof String.prototype.trim === 'function') {
 				return sText.trim();
