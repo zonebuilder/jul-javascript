@@ -30,6 +30,7 @@
     "gulp-load-plugins": "*",
     "gulp-strip-comments": "*",
     "gulp-uglify": "*",
-    "jsdoc2": "*"
+    "jsdoc2": "*",
+    "jshint": "*"
   }
 }
