@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language module version 1.2.5
+	JUL - The JavaScript UI Language module version 1.2.8
 	Copyright (c) 2012 - 2016 The Zonebuilder (zone.builder@gmx.com)
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GPL2 or later; LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)

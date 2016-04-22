@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language module version 1.2.5
+	JUL - The JavaScript UI Language module version 1.2.8
 	Copyright (c) 2012 - 2016 The Zonebuilder (zone.builder@gmx.com)
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GPL2 or later; LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -379,7 +379,7 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 		}
 		if (oConfig[this.htmlProperty]) {
 			if (bAmple) {
-				ample.query(oWidget).append(oConfig[this.htmlProperty].substr(0, 1) === '<' && oConfig[this.htmlProperty].substr(-2) === '/' + '>' ?
+				ample.query(oWidget).append(oConfig[this.htmlProperty].substr(0, 1) === '<' && /\/\w*>$/.test(oConfig[this.htmlProperty]) ?
 					oConfig[this.htmlProperty] : '<span>' + oConfig[this.htmlProperty] + '</span>');
 			}
 			else {
@@ -508,10 +508,12 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 	*/
 	obj2str: function(oData, bQuote, fDecorator) {
 		if (typeof this._useJsonize === 'undefined') {
-				var fEmpty = function() {};
-				this._useJsonize = JSON.stringify({o: fEmpty}, this._jsonReplacer).indexOf('function') < 0;
-			}
+			var fEmpty = function() {};
+			this._useJsonize = JSON.stringify({o: fEmpty}, this._jsonReplacer).indexOf('function') < 0;
+		}
+		JUL.UI._this_ = this;
 		var sData = this._useJsonize ? JSON.stringify(this._jsonize(oData)) : JSON.stringify(oData, this._jsonReplacer);
+		delete JUL.UI._this_;
 		if (!sData) { return ''; }
 		var ca = '#';
 		var c = '';
@@ -549,11 +551,22 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 						"'" + sData.substr(iStart + 1, i - iStart - 1).replace(/\\"/g, '"').replace(/'/g, "\\'") + "'"));
 				}
 				else {
-					if (this._regExps.functionStart.test(sItem) || this._regExps.newStart.test(sItem)) {
-						var oPrefix = sItem.match(/\n(\s|\t)+\}$/);
-						if (oPrefix) {
-							oPrefix = oPrefix[0].substr(0, oPrefix[0].length - 1);
-							sItem = sItem.replace(new RegExp(oPrefix, 'g'), '\n');
+					var bPrefix = false;
+					if (this._usePrefixes) {
+						if (sItem.substr(0, this._jsonPrefixes.func.length) === this._jsonPrefixes.func) {
+							bPrefix = true;
+							sItem = sItem.substr(this._jsonPrefixes.func.length).replace(/^\s+/, '');
+						}
+						else if (sItem.substr(0, this._jsonPrefixes.newop.length) === this._jsonPrefixes.newop) {
+							bPrefix = true;
+							sItem = sItem.substr(this._jsonPrefixes.newop.length).replace(/^\s+/, '');
+						}
+					}
+					if (bPrefix || (!this._usePrefixes && (this._regExps.functionStart.test(sItem) || this._regExps.newStart.test(sItem)))) {
+						var oBegin = sItem.match(/\n(\s|\t)+\}$/);
+						if (oBegin) {
+							oBegin = oBegin[0].substr(0, oBegin[0].length - 1);
+							sItem = sItem.replace(new RegExp(oBegin, 'g'), '\n');
 						}
 						sItem = sItem.replace(/\t/g, this._tabString)
 							.replace(/\n\r?/g, this._newlineString + sIndent);
@@ -562,7 +575,13 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 						continue;
 					}
 					else {
-						sContent = sContent + (this._regExps.regexp.test(sItem) ?
+						bPrefix = false;
+						if (this._usePrefixes &&
+							sItem.substr(0, this._jsonPrefixes.regex.length) === this._jsonPrefixes.regex) {
+							bPrefix = true;
+							sItem = sItem.substr(this._jsonPrefixes.regex.length).replace(/^\s+/, '');
+						}
+						sContent = sContent + (bPrefix || (!this._usePrefixes && this._regExps.regexp.test(sItem)) ?
 							sItem : (this._useDoubleQuotes ? sData.substr(iStart, i - iStart + 1) :
 							"'" + sData.substr(iStart + 1, i - iStart - 1).replace(/\\"/g, '"').replace(/'/g, "\\'") + "'"));
 					}
@@ -728,6 +747,15 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 	*/
 	_instanceProperty: '_instance',
 	/**
+		Prefixes used when serializing certain objects into JSON.
+		@see JUL.UI._usePrefixes property
+		@type	Object
+		@private
+	*/
+	_jsonPrefixes: {
+		func: '#func:', regex: '#regex:', newop: '#newop:'
+	},
+	/**
 		Used for debugging purposes
 		@type	Boolean
 		@private
@@ -776,6 +804,13 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 	*/
 	_useDoubleQuotes: false,
 	/**
+		If true, the objects/functions will serialize into JSON using type dependent prefixes.
+		@see JUL.UI._jsonPrefixes hash. This doesn't affect the generated JavaScript.
+		@type	Boolean
+		@private
+	*/
+	_usePrefixes: false,
+	/**
 		Utility wrapper of browser's XML parser
 		@private
 	*/
@@ -805,13 +840,17 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 			oValue = new Date(Date.UTC(parseInt(oValue.substr(0, 4)), parseInt(oValue.substr(5, 2)) - 1, parseInt(oValue.substr(8, 2)),
 				parseInt(oValue.substr(11, 2)), parseInt(oValue.substr(14, 2)), parseInt(oValue.substr(17, 2)), oValue.substr(19, 1) === '.' ? parseInt(oValue.substr(20, 3)) : 0));
 		}
+		var oInstance = JUL.UI._this_ || false;
 		switch (JUL.typeOf(oValue)) {
 		case 'Function':
-			return oValue.toString().replace(JUL.UI._regExps.autoUseStrict, '$1');
+			return (oInstance && oInstance._usePrefixes ? oInstance._jsonPrefixes.func + ' ' : '') +
+				oValue.toString().replace(JUL.UI._regExps.autoUseStrict, '$1');
 		case 'RegExp':
-			return oValue.toString();
+			return (oInstance && oInstance._usePrefixes ? oInstance._jsonPrefixes.regex + ' ' : '') +
+				oValue.toString();
 		case 'Date':
-			return 'new Date(/*' + oValue.toUTCString().replace('UTC', 'GMT') + '*/' + oValue.getTime() + ')';
+			return (oInstance && oInstance._usePrefixes ? oInstance._jsonPrefixes.newop + ' ' : '') +
+				'new Date(/*' + oValue.toUTCString().replace('UTC', 'GMT') + '*/' + oValue.getTime() + ')';
 		default:
 			return oValue;
 		}

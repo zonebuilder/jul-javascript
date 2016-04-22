@@ -1,3 +1,5 @@
+v1.2.8 (2016-04-22):
+  * ability to prefix objects by type in the JSON serialization, while keeping the JavaScript unaffected 
 v1.2.5 (2016-04-14):
   * added late binding at parse time - see JUL.UI.referencePrefix
   * corrected inheritance feedback in JUL.UI.Parser
