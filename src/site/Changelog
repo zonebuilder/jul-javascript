@@ -1,3 +1,5 @@
+v1.2.9 (2016-04-27):
+  * updated the default JSON prefixes to avoid confusion with UNIX style comments 
 v1.2.8 (2016-04-22):
   * ability to prefix objects by type in the JSON serialization, while keeping the JavaScript unaffected 
 v1.2.5 (2016-04-14):

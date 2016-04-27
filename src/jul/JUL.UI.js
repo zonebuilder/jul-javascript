@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language module version 1.2.8
+	JUL - The JavaScript UI Language module version 1.2.9
 	Copyright (c) 2012 - 2016 The Zonebuilder (zone.builder@gmx.com)
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GPL2 or later; LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -91,7 +91,7 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 		Eg. '#ref: JUL.UI.createDom' will resolve to JUL.UI.createDom method.
 		@type	String
 	*/
-	referencePrefix: '#ref:',
+	referencePrefix: '=ref:',
 	/**
 		The name of the tag property in the config tree
 		@type	String
@@ -379,7 +379,7 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 		}
 		if (oConfig[this.htmlProperty]) {
 			if (bAmple) {
-				ample.query(oWidget).append(oConfig[this.htmlProperty].substr(0, 1) === '<' && /\/\w*>$/.test(oConfig[this.htmlProperty]) ?
+				ample.query(oWidget).append(oConfig[this.htmlProperty].substr(0, 1) === '<' && oConfig[this.htmlProperty].substr(-1) === '>' ?
 					oConfig[this.htmlProperty] : '<span>' + oConfig[this.htmlProperty] + '</span>');
 			}
 			else {
@@ -753,7 +753,7 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 		@private
 	*/
 	_jsonPrefixes: {
-		func: '#func:', regex: '#regex:', newop: '#newop:'
+		func: '=func:', regex: '=regex:', newop: '=newop:'
 	},
 	/**
 		Used for debugging purposes
