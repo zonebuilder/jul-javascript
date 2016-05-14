@@ -19,11 +19,11 @@ Browser support
 
 JUL supports all major browsers including FF4+, IE8+, Safari4+, Chrome1+, Opera10+ 
 
-Build and install
------------------
+Build & install
+---------------
 
 Install [Node.js](https://nodejs.org/) in your system.
-Rub the following shell commands in order:
+Run the following shell commands in order:
 
 ``` bash
 	npm install
