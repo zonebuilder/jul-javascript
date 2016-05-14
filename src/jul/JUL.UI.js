@@ -1,8 +1,8 @@
 /*
-	JUL - The JavaScript UI Language module version 1.3
+	JUL - The JavaScript UI Language module version 1.3.1
 	Copyright (c) 2012 - 2016 The Zonebuilder (zone.builder@gmx.com)
 	http://sourceforge.net/projects/jul-javascript/
-	Licenses: GPL2 or later; LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
+	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
  */
 /**
 	@fileOverview	JUL tools for working with a config tree of component configs<br>
@@ -343,12 +343,20 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 		if (!oWidget) { return null; }
 		if (oConfig.listeners && typeof oConfig.listeners === 'object') {
 			var oListeners = oConfig.listeners;
+			var oScope = null;
+			if (oListeners.scope) {
+				oScope = JUL.get(oListeners.scope);
+				delete oListeners.scope;
+			}
 			for (var sItem in oListeners) {
 				if (oListeners.hasOwnProperty(sItem)) {
 					var aAll = [].concat(oListeners[sItem]);
 					for (var j = 0; j < aAll.length; j++) {
-						if (bAmple || oWidget.addEventListener) { oWidget.addEventListener(sItem, JUL.get(aAll[j])); }
-						else { oWidget.attachEvent('on' + sItem, JUL.get(aAll[j])); }
+						var fListener = JUL.get(aAll[j]);
+						if (fListener) {
+							if (bAmple || oWidget.addEventListener) { oWidget.addEventListener(sItem, oScope ? JUL.makeCaller(oScope, fListener, true) : fListener); }
+							else { oWidget.attachEvent('on' + sItem, oScope ? JUL.makeCaller(oScope, fListener, true) : fListener); }
+						}
 					}
 				}
 			}

@@ -1,8 +1,8 @@
 /*
-	JUL - The JavaScript UI Language module version 1.3
+	JUL - The JavaScript UI Language module version 1.3.1
 	Copyright (c) 2012 - 2016 The Zonebuilder (zone.builder@gmx.com)
 	http://sourceforge.net/projects/jul-javascript/
-	Licenses: GPL2 or later; LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
+	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
  */
 /**
 	@fileOverview	
@@ -116,7 +116,7 @@ JUL = {
 		JUL version
 		@type	String
 	*/
-	version: '1.3',
+	version: '1.3.1',
 	/**
 		Applies an object or an array of objects to a given object
 		@param	{Object}	oSource	The source object to apply to
@@ -160,12 +160,12 @@ JUL = {
 		Creates a wrapper that will call a certain function in a specific scope.
 		Useful for ensuring that a callback will get the desired scope.
 		@param	{Object}	oScope	The scope to call the given function in
-		@param	{Function|String}	fCall	The function to be called. If a string, it will be the oScope method with that name.
+		@param	{Mixed}	fCall	The function to be called. If a string or an index, it will be the oScope method with that name.
 		@param	{Boolean}	[bAppendThis]	If true, the actual calling context will be added as the last parameter of the called function
 		@returns	{Function}	The caller function
 	*/
 	makeCaller: function(oScope, fCall, bAppendThis) {
-		if (!oScope || !fCall) { return null; }
+		if (!oScope || (!fCall && fCall !== 0)) { return null; }
 		if (typeof fCall !== 'function') {
 			fCall = oScope[fCall];
 			if (typeof fCall !== 'function') { return null; }
@@ -207,7 +207,7 @@ JUL = {
 		Trims white spaces around a string
 		@param	{String}	sText	The string to trim
 		@param	{String}	sWhat	Optional string to trim at both ends
-		@param	{Boolean}	_bFromMap	Internal use, it avoids side-effect when called from Array.prototype.map
+		@param	{Boolean}	[_bFromMap]	Internal use, it avoids side-effect when called from Array.prototype.map
 		@returns	{String}	Trimmed string
 	*/
 	trim: function(sText, sWhat, _bFromMap) {
