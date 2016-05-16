@@ -8,7 +8,7 @@ var oConfig = {
 	minHeader: 'src/assets/header-min.js',
 	minName: 'jul.min.js',
 	minDest: 'build/js',
-	jsdoc: 'node "../../node_modules/jsdoc2/app/run.js" -d="../../build/docs" -D="noGlobal:true" -D="title:JUL 1.3.1 API Reference" -D="index:files" -D="copyright:true" -t="../jsdoc-templates/codeview" -p .',
+	jsdoc: 'node "../../node_modules/jsdoc2/app/run.js" -d="../../build/docs" -D="noGlobal:true" -D="title:JUL 1.3.2 API Reference" -D="index:files" -D="copyright:true" -t="../jsdoc-templates/codeview" -p .',
 	jsdocFrom: 'src/jul'
 };
 var fRun = require('child_process').exec;

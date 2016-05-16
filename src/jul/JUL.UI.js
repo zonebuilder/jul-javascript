@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language module version 1.3.1
+	JUL - The JavaScript UI Language module version 1.3.2
 	Copyright (c) 2012 - 2016 The Zonebuilder (zone.builder@gmx.com)
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -343,13 +343,9 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 		if (!oWidget) { return null; }
 		if (oConfig.listeners && typeof oConfig.listeners === 'object') {
 			var oListeners = oConfig.listeners;
-			var oScope = null;
-			if (oListeners.scope) {
-				oScope = JUL.get(oListeners.scope);
-				delete oListeners.scope;
-			}
+			var oScope = oListeners.scope ? JUL.get(oListeners.scope) : null;
 			for (var sItem in oListeners) {
-				if (oListeners.hasOwnProperty(sItem)) {
+				if (oListeners.hasOwnProperty(sItem) && sItem !== 'scope') {
 					var aAll = [].concat(oListeners[sItem]);
 					for (var j = 0; j < aAll.length; j++) {
 						var fListener = JUL.get(aAll[j]);
