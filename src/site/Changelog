@@ -1,3 +1,6 @@
+v1.3.5 (2016-08-06):
+  * added include merging callback for JUL.UI.include()
+  * ability for JUL.UI.createDom() to create custom HTML elements
 v1.3.2 (2016-05-17):
   * corrected for listeners config reuse in JUL.UI.createDom 
 v1.3.1 (2016-05-14):

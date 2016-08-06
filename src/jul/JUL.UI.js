@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language module version 1.3.2
+	JUL - The JavaScript UI Language module version 1.3.5
 	Copyright (c) 2012 - 2016 The Zonebuilder (zone.builder@gmx.com)
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -123,11 +123,10 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 		@param	{Object}	[oConfig]	Parser config object to override inherited members
 	*/
 	Parser: function(oConfig) {
-			var oThis = this;
-			/* carry on the cyclic direct inheritance */
-			this.Parser = function(oConfig) { JUL.UI.Parser.call(oThis, oConfig); };
-			this.Parser.prototype = this;
 		JUL.apply(this, oConfig);
+		/* carry on the cyclic direct inheritance */
+		this.Parser = function(oConfig) { JUL.UI.Parser.call(this, oConfig); };
+		this.Parser.prototype = this;
 	},
 	/**
 		Compacts a config tree converting suitable 'childrenProperty' items into 'membersProperties' properties
@@ -282,12 +281,10 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 			oCurrent = aStack[i];
 			if (!oCurrent.val()) { continue; }
 			if (oCurrent.val()[this.parserProperty]) {
-				var oBranchConfig = oCurrent.val();
-				var oParserConfig = oBranchConfig[this.parserProperty];
-				var oBranchParser = new this.Parser(oParserConfig);
+				var oBranchConfig = JUL.apply({}, oCurrent.val());
+				var oBranchParser = new this.Parser(oBranchConfig[this.parserProperty]);
 				delete oBranchConfig[this.parserProperty];
 				oCurrent.val(oBranchParser.create(oBranchConfig, oBindings, this.topDown && oCurrent.parent ? oCurrent.parent.val() : null));
-				oBranchConfig[this.parserProperty] = oParserConfig;
 				continue;
 			}
 			if (this.topDown) {
@@ -327,19 +324,28 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 	/**
 		Custom factory for DOM languages<br>
 		To use it, set the 'customFactory' property of the parser to JUL.UI.createDom
-		@param	{Object}	oConfig	oConfig	Config object
-		@returns	{Object}	Component instance
+		@param	{Object}	oConfig	Config object
+		@param	{Object}	[oWidget]	Optional element instance. If present, the element will not be created, but it will be applied the passed config.
+		@returns	{Object}	Element instance
 	*/
-	createDom: function(oConfig) {
+	createDom: function(oConfig, oWidget) {
 		if (!oConfig) { return null; }
 		var nNS = oConfig[this.classProperty].indexOf(':');
 		var sNS = nNS > -1 ? oConfig[this.classProperty].substr(0, nNS) : oConfig[this.classProperty];
 		if (!this.xmlNS[sNS]) { sNS = 'html'; }
+		var fCall = function() {
+			var aArgs = [].slice.call(arguments);
+			var oThis = aArgs.shift();
+			var sFn = aArgs.shift();
+			while (aArgs.length && typeof aArgs[aArgs.length - 1] === 'undefined') { aArgs.pop(); }
+			return oThis[sFn].apply(oThis, aArgs);
+		};
 		var oDocument = document;
 		var bAmple = typeof window.ample === 'object';
 		if (bAmple) { oDocument = ample; }
-		var oWidget = sNS === 'html' ? oDocument.createElement(nNS > -1 ? oConfig[this.classProperty].substr(nNS + 1) : oConfig[this.tagProperty]) :
-			oDocument.createElementNS(this.xmlNS[sNS], nNS > -1 ? oConfig[this.classProperty] : sNS + ':' + oConfig[this.tagProperty]);
+		oWidget = oWidget || (sNS === 'html' || typeof oDocument.createElementNS !== 'function' ?
+			fCall(oDocument, 'createElement', nNS > -1 ? oConfig[this.classProperty].substr(nNS + 1) : oConfig[this.tagProperty], oConfig.is) :
+			fCall(oDocument, 'createElementNS', this.xmlNS[sNS], nNS > -1 ? oConfig[this.classProperty] : sNS + ':' + oConfig[this.tagProperty], oConfig.is));
 		if (!oWidget) { return null; }
 		if (oConfig.listeners && typeof oConfig.listeners === 'object') {
 			var oListeners = oConfig.listeners;
@@ -351,7 +357,7 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 						var fListener = JUL.get(aAll[j]);
 						if (fListener) {
 							if (bAmple || oWidget.addEventListener) { oWidget.addEventListener(sItem, oScope ? JUL.makeCaller(oScope, fListener, true) : fListener); }
-							else { oWidget.attachEvent('on' + sItem, oScope ? JUL.makeCaller(oScope, fListener, true) : fListener); }
+							else { oWidget.attachEvent('on' + sItem, JUL.makeCaller(oScope || oWidget, fListener, true)); }
 						}
 					}
 				}
@@ -399,8 +405,8 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 				if (sItem !== this.childrenProperty) {
 					nNS = sItem.indexOf(':');
 					if (nNS > -1) { sNS = sItem.substr(0, nNS);	}
-					oMembersWidget = sNS === 'html' ? oDocument.createElement(nNS > -1 ? sItem.substr(nNS + 1) : sItem) :
-						oDocument.createElementNS(this.xmlNS[sNS], nNS > -1 ? sItem : sNS + ':' + sItem);
+					oMembersWidget = sNS === 'html' ? fCall(oDocument, 'createElement', nNS > -1 ? sItem.substr(nNS + 1) : sItem, oConfig.is) :
+						fCall(oDocument, 'createElementNS', this.xmlNS[sNS], nNS > -1 ? sItem : sNS + ':' + sItem, oConfig.is);
 				}
 				for (var k = 0; k < aMembers.length; k++) {
 					oMembersWidget.appendChild(aMembers[k]);
@@ -478,23 +484,32 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 	/**
 		Does explicit object inheritance based on a predefined object property
 		@param	{Object}	oData	Config object containing an include property i.e. a dotted path to another object
+		@param	{Function}	[fMerger]	Callback function to do a custom object merging. it has two parameters:<ul>
+		<li>oSource - the current object to be affected</li>
+		<li>oAdd - the object to be merged with oSource</li>
+		</ul>If not present, the merging is done using JUL.apply()
 		@returns	{Object}	Object with recursively applied inherited properties where not already present
 	*/
-	include: function(oData) {
+	include: function(oData, fMerger) {
 		var oNew = {};
 		if (!oData[this.includeProperty]) {
 			return JUL.apply(oNew, oData);
 		}
+		fMerger = fMerger || this._includeMerger;
 		var aIncludes = [].concat(oData[this.includeProperty]);
 		for (var i = 0; i < aIncludes.length; i++) {
 			var oInclude = JUL.get(aIncludes[i]);
-			if (oInclude) { JUL.apply(oNew, this.include(oInclude)); }
+			if (oInclude) {
+				if (fMerger) {  fMerger.call(this, oNew, this.include(oInclude, fMerger)); }
+				else { JUL.apply(oNew, this.include(oInclude)); }
+			}
 		}
 		var aCid = oNew[this.bindingProperty] ? [].concat(oNew[this.bindingProperty]) : [];
 		if (oData[this.bindingProperty] && aCid.indexOf(oData[this.bindingProperty]) < 0) {
 			aCid.push(oData[this.bindingProperty]);
 		}
-		JUL.apply(oNew, oData);
+		if (fMerger) { fMerger.call(this, oNew, oData); }
+		else { JUL.apply(oNew, oData); }
 		if (aCid.length) { oNew[this.bindingProperty] = aCid; }
 		delete oNew[this.includeProperty];
 		return oNew;
@@ -743,6 +758,13 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 		dom2jul.call(this, oData, oXml.documentElement, !this.useTags);
 		return bReturnString ? this.obj2str(oData) : oData;
 	},
+	/**
+		May be set to a 'include' merging function used globally by the parser.
+		See JUL.UI.include() parameters.
+		@type	Function
+		@private
+	*/
+	_includeMerger: null,
 	/**
 		Used for debugging purposes
 		@type	String
