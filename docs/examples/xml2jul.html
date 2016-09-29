@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<title>XML2JUL</title>
+	<style type="text/css">
+	html, body {
+		width: 100%;
+		margin: 0;
+		padding: 0;
+		background-color: #fff;
+	}
+	
+	body * {
+		font-family:  "Helvetica",Helvetica, sans-serif;
+		font-size: 13px;
+		color: #111;
+	}
+	#container {
+		width: 1055px;
+		margin: 10px auto;
+		background-color: #ddd !important;
+		padding: 15px 10px 0 15px;
+	}
+	.head-field {
+		padding: 4px 0;
+	}
+	.head-label {
+		display: inline-block;
+		width: 250px;
+		font-weight: bold;
+	}
+	.head-text {
+		width: 100px;
+		padding: 0 3px;
+	}
+	.long-text {
+		width: 500px;
+	}
+	#center {
+		padding: 10px 0;
+	}
+	.column {
+		float: left;
+		margin-right: 15px;
+	}
+	.clear {
+		clear: both;
+	}
+	.column-label {
+		display: block;
+		font-weight: bold;
+	}
+	.column-textarea {
+		overflow: auto;
+		width: 500px;
+		height: 270px;
+		padding: 3px;
+	}
+	#buttons {
+		width: 1005px;
+		padding: 10px 0;
+		text-align: center;
+	}
+	.buttons-seoarator {
+		display: inline-block;
+		width: 30px;
+	}
+	#footer {
+		text-align: center;
+		font-size: x-small;
+	}
+	</style>	
+	<script type="text/javascript" src="../js/jul.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/json2/20121008/json2.js"></script>
+</head>
+<body>
+	<div id="container"><form action="#" onsubmit="return false">
+		<div class="head-field">
+			<label for="text-class" class="head-label">Class property</label>
+			<input id="text-class" type="text" class="head-text" value="xclass" />
+		</div>
+		<div class="head-field">
+			<label for="text-default-class" class="head-label">Default class</label>
+			<input id="text-default-class" type="text" class="head-text" />
+		</div>
+		<div class="head-field">
+			<label for="text-children" class="head-label">Children property</label>
+			<input id="text-children" type="text" class="head-text" value="children" />
+		</div>
+		<div class="head-field">
+			<label for="text-tag" class="head-label">Tag property</label>
+			<input id="text-tag" type="text" class="head-text" value="tag" />
+		</div>
+		<div class="head-field">
+			<label for="text-other-members" class="head-label">Other members properties</label>
+			<input id="text-other-members" type="text" class="head-text long-text" />
+		</div>
+		<div class="head-field">
+			<label for="checkbox-tag" class="head-label">Don&#39;t generate tag property</label>
+			<input id="checkbox-tag" type="checkbox" class="head-checkbox" />
+		</div>
+		<div class="head-field">
+			<label for="checkbox-quote" class="head-label">Preserve all quoting</label>
+			<input id="checkbox-quote" type="checkbox" class="head-checkbox" />
+		</div>
+		<div class="head-field">
+			<label for="checkbox-compact" class="head-label">Auto-compact JUL</label>
+			<input id="checkbox-compact" type="checkbox" class="head-checkbox" />
+		</div>
+		<div id="center">
+			<div class="column">
+				<label for="textarea-xml" class="column-label">XML</label>
+				<textarea id="textarea-xml" class="column-textarea" wrap="off"></textarea>
+			</div>
+			<div class="column">
+				<label for="textarea-jul" class="column-label">JUL</label>
+				<textarea id="textarea-jul" class="column-textarea" wrap="off" readonly="readonly"></textarea>
+			</div>
+			<div class="clear"></div>
+		</div>
+		<div class="head-field">
+			<label for="text-result-members" class="head-label">Resulting members properties</label>
+			<input id="text-result-members" type="text" class="head-text long-text" readonly="readonly" />
+		</div>
+		<div id="buttons">
+			<input type="submit" id="button-convert" onclick="APP.convert();return false" value="XML -> JUL" />
+			<span class="buttons-seoarator"></span>
+			<input type="button" id="button-clear" onclick="APP.clear()" value="Clear" />
+		</div>
+	</form></div>
+	<div id="footer">
+  <script type="text/javascript">
+  document.write('Copyright &copy; 2012 - ' + (new Date()).getFullYear() + ' The Zonebuilder. Powered by JUL ' + JUL.version);
+  </script>
+	</div>
+	<script type="text/javascript">
+	// define namespaces for the application and for the ui (both objects are created) 
+	JUL.ns('APP.ui');
+	JUL.apply(APP, {
+		version: '1.0',
+		// converts the XML from 'textarea-xml' to JUL in 'textarea-jul'
+		convert: function() {
+			var sXml = document.getElementById('textarea-xml').value;
+			if (!sXml) {
+				alert('Paste some XML');
+				return;
+			}
+			// workaround - Mozilla rejects creating DOM for a XUL XML
+			var sFakeXul = '="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul';
+			sXml = sXml.replace(sFakeXul, sFakeXul + '1');
+			document.getElementById('textarea-jul').value = '';
+			// init the parser
+			var oParser = new JUL.UI.Parser({
+				classProperty: JUL.trim(document.getElementById('text-class').value) || 'xclass',
+				defaultClass: JUL.trim(document.getElementById('text-default-class').value),
+				childrenProperty: JUL.trim(document.getElementById('text-children').value) || 'children',
+				tagProperty: JUL.trim(document.getElementById('text-tag').value) || 'tag',
+				membersProperties: [],
+				useTags: !document.getElementById('checkbox-tag').checked
+			});
+			var bQuote = document.getElementById('checkbox-quote').checked;
+			var bAuto = document.getElementById('checkbox-compact').checked;
+			// call the conversion
+			var oJul = oParser.xml2jul(sXml);
+			oParser.membersProperties = JUL.trim(document.getElementById('text-other-members').value) ?
+			document.getElementById('text-other-members').value.split(',').map(JUL.trim) : [];
+			// compact the result if 'membersProperties' are specified 
+			oJul = oParser.compact(oJul, bAuto);
+			document.getElementById('textarea-jul').value = oParser.obj2str(oJul, bQuote);
+			// 'membersProperties' may augment if auto-compacting is enabled
+			document.getElementById('text-result-members').value = oParser.membersProperties.join(', ');
+		},
+		// clears the textareas
+		clear: function() {
+			document.getElementById('textarea-xml').value = '';
+			document.getElementById('textarea-jul').value = '';
+			document.getElementById('text-result-members').value = '';
+		}
+	});
+	</script>
+</body>
+</html>
