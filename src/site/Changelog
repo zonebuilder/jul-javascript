@@ -1,3 +1,5 @@
+v1.3.6 (2016-10-03):
+  * updated some examples due to Google Drive halting web hosting
 v1.3.5 (2016-08-06):
   * added include merging callback for JUL.UI.include()
   * ability for JUL.UI.createDom() to create custom HTML elements
