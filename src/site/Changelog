@@ -1,3 +1,5 @@
+v1.3.7 (2016-11-25):
+  * publishing JUL also as a Node.js module
 v1.3.6 (2016-10-03):
   * updated some examples due to Google Drive halting web hosting
 v1.3.5 (2016-08-06):
