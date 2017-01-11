@@ -1,3 +1,5 @@
+v1.3.8 (2017-01-11):
+  * maintenance release
 v1.3.7 (2016-11-25):
   * publishing JUL also as a Node.js module
 v1.3.6 (2016-10-03):
@@ -29,7 +31,7 @@ v1.1 (2015-10-31):
   * added support to JUL.ns(), JUL.get() for dotted path segment escaping
   * added decorator function to JUL.UI.obj2str() for transforming serialized JavaScript
 v1.0.7 (2015-05-16):
-  * augmentented JUL with Date serialization
+  * augmented JUL with Date serialization
   * serialization support for 'new' calls
 v1.0.6 (2015-04-28):
   * updated project links

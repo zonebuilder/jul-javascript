@@ -5,30 +5,39 @@
 JUL - The JavaScript UI Language
 ================================
 
-### About
+About
+-----
 
 The JavaScript UI Language (JUL) is a configuration and instantiation module 
 for the JavaScript frameworks.
 It can be used with any framework that accepts a configuration object 
 as a constructor parameter, or with a custom factory for the other frameworks.
 
-### License
+License
+-------
  
  Licensed under GNU GPLv2 or later and under GNU LGPLv3 or later.
  
-### Browser support
+Browser support
+---------------
 
 JUL supports all major browsers including FF4+, IE8+, Safari4+, Chrome1+, Opera10+.
 JUL also works in various mobile browsers and in Node.js. 
 
-### Install the Node module
+Install the Node module
+-----------------------
 
 Local:
+
 `npm install jul`
+
 Global:
+
 `npm install -g jul`
 
-### Usage the Node’s way
+
+Usage the Node’s way
+--------------------
 
 ```javascript
 var jul = require('jul');
@@ -46,11 +55,12 @@ var ref = jul.ref(NS, 'tree');
 console.log(parser.obj2str(ref.val()));
 ````
 
-### Usage the JUL’s way
+Usage the JUL’s way
+-------------------
 
 ```javascript
 // Add "jul.js" as an external JS in the web page, or require('jul') in Node.
-?? JUL & tools always remain global namespaces.
+// JUL & tools always remain global namespaces.
 
 // a configuration object
 var oTree = {name: 'Main', id: 'global.NS.tree', size: 5,
@@ -66,15 +76,19 @@ var oRef = new JUL.Ref(NS, 'tree');
 console.log(oParser.obj2str(oRef.val()));
 ````
 
-### Examples & documentation
+Examples & documentation
+------------------------
 
 [Documentation page](https://zonebuilder.github.io/jul/index.html)
 
-### Build & install from source
+Build & install from source
+---------------------------
 
 Install [Node.js](https://nodejs.org/) in your system.
 Clone the repository:
+
 `git clone https://github.com/zonebuilder/jul-javascript.git`
+
 Run the following shell commands in order:
 
 ```bash
@@ -83,7 +97,8 @@ Run the following shell commands in order:
 ```
 The release will be in the 'build' folder. The Node module will be in the 'build_node' folder.
 
-### Downloads & user support
+Downloads & user support
+------------------------
 
 [jul-javascript project on SourceForge](http://sourceforge.net/projects/jul-javascript/)
 
