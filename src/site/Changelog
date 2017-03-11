@@ -1,3 +1,6 @@
+v1.4.0 (2017-03-11):
+  * added per-class and per-component list of members to instantiate
+  * ability to expose expression enclosed into a string using JUL.UI.referencePrefix
 v1.3.9 (2017-02-11):
   * maintenance release
 v1.3.8 (2017-01-11):
