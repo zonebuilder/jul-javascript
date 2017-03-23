@@ -1,3 +1,5 @@
+v1.4.5 (2017-03-24):
+  * added support for instantiating sparse configuration trees; see the last argument of JUL.UI.create()
 v1.4.0 (2017-03-11):
   * added per-class and per-component list of members to instantiate
   * ability to expose expression enclosed into a string using JUL.UI.referencePrefix
