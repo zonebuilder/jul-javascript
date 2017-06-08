@@ -1,6 +1,6 @@
 {
   "name": "jul-src",
-  "version": "1.4.5",
+  "version": "1.4.9",
   "description": "JUL - The JavaScript UI Language",
   "main": "index.html",
   "scripts": {

@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.4.5
+	JUL - The JavaScript UI Language version 1.4.9
 	Copyright (c) 2012 - 2017 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -135,7 +135,9 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 	Parser: function(oConfig) {
 		if (!(this instanceof JUL.UI.Parser) || this.hasOwnProperty('Parser')) {
 			return this && typeof this.Parser === 'function' && this.Parser.prototype instanceof JUL.UI.Parser ?
-				new this.Parser(oConfig) : new JUL.UI.Parser(oConfig);
+				new this.Parser(oConfig) :
+				(this && this.ui && this.ui instanceof JUL.UI.Parser ?
+					new this.ui.Parser(oConfig) :  new JUL.UI.Parser(oConfig));
 		}
 		JUL.apply(this, oConfig);
 		/* carry on the cyclic direct inheritance */
@@ -355,15 +357,17 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 		if (!oConfig[this.classProperty]) { oConfig[this.classProperty] = this.defaultClass; }
 		var sNamespace = '';
 		if (oConfig[this.idProperty]) {
-			sNamespace = oConfig[this.idProperty];
+			sNamespace = oConfig[this.idProperty].replace(/\\\./g, ':::::');
 			oConfig[this.idProperty] = oConfig[this.idProperty].replace(/\\\./g, '--').replace(/\./g, '-');
 			if (['window.', 'global.'].indexOf(sNamespace.substr(0, 7)) > -1) { oConfig[this.idProperty] = oConfig[this.idProperty].substr(7); }
+			if (sNamespace.substr(0, 1) === '.') { oConfig[this.idProperty] = oConfig[this.idProperty].substr(1); }
 		}
+		var oJul = this._getJul();
 		var sClass = oConfig[this.classProperty];
 		if (!this.customFactory) { delete oConfig[this.classProperty]; }
-		var oNew = this.customFactory ? JUL.get(this.customFactory).call(this, oConfig) : this.factory(sClass, oConfig);
+		var oNew = this.customFactory ? oJul.get(this.customFactory).call(this, oConfig) : this.factory(sClass, oConfig);
 		if (sNamespace.indexOf('.') > -1) {
-			return JUL.ns(sNamespace.replace(/-/g, '_'), oNew);
+			return oJul.ns(sNamespace.replace(/:{5}/g, '\\.').replace(/-/g, '_'), oNew);
 		}
 		else {
 			return oNew;
@@ -378,6 +382,7 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 	*/
 	createDom: function(oConfig, oWidget) {
 		if (!oConfig) { return null; }
+		var oJul = this._getJul();
 		var nNS = this.useTags ? -1 : oConfig[this.classProperty].indexOf(':');
 		var sNS = nNS > -1 ? oConfig[this.classProperty].substr(0, nNS) : (this.useTags ? oConfig[this.classProperty] : 'html');
 		var oDocument = window.document;
@@ -389,15 +394,15 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 		if (!oWidget) { return null; }
 		if (oConfig.listeners && typeof oConfig.listeners === 'object') {
 			var oListeners = oConfig.listeners;
-			var oScope = oListeners.scope ? JUL.get(oListeners.scope) : null;
+			var oScope = oListeners.scope ? oJul.get(oListeners.scope) : null;
 			for (var sItem in oListeners) {
 				if (oListeners.hasOwnProperty(sItem) && sItem !== 'scope') {
 					var aAll = [].concat(oListeners[sItem]);
 					for (var j = 0; j < aAll.length; j++) {
-						var fListener = JUL.get(aAll[j]);
+						var fListener = oJul.get(aAll[j]);
 						if (fListener) {
-							if (bAmple || oWidget.addEventListener) { oWidget.addEventListener(sItem, oScope ? JUL.makeCaller(oScope, fListener, true) : fListener); }
-							else { oWidget.attachEvent('on' + sItem, JUL.makeCaller(oScope || oWidget, fListener, true)); }
+							if (bAmple || oWidget.addEventListener) { oWidget.addEventListener(sItem, oScope ? oJul.makeCaller(oScope, fListener, true) : fListener); }
+							else { oWidget.attachEvent('on' + sItem, oJul.makeCaller(oScope || oWidget, fListener, true)); }
 						}
 					}
 				}
@@ -515,20 +520,13 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 		@returns	{Object}	The new created object
 	*/
 	factory: function(sClass, oArgs) {
-		var aNames = sClass.split('.');
-		var oCurrent = global;
-		var sItem = '';
-		while (aNames.length) {
-			sItem = aNames.shift();
-			if (typeof oCurrent[sItem] === 'undefined') { return null; }
-			if (aNames.length) { oCurrent = oCurrent[sItem]; }
-		}
-		if (typeof oCurrent[sItem] !== 'function') { return null; }
+		var FNew = this._getJul().get(sClass);
+		if (typeof FNew !== 'function') { return null; }
 		if (oArgs) {
-			return new oCurrent[sItem](oArgs);
+			return new (FNew)(oArgs);
 		}
 		else {
-			return new oCurrent[sItem]();
+			return new (FNew)();
 		}
 	},
 	/**
@@ -563,9 +561,10 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 			return JUL.apply(oNew, oData);
 		}
 		fMerger = fMerger || this._includeMerger;
+		var oJul = this._getJul();
 		var aIncludes = [].concat(oData[this.includeProperty]);
 		for (var i = 0; i < aIncludes.length; i++) {
-			var oInclude = JUL.get(aIncludes[i]);
+			var oInclude = oJul.get(aIncludes[i]);
 			if (oInclude) {
 				if (fMerger) {  fMerger.call(this, oNew, this.include(oInclude, fMerger)); }
 				else { JUL.apply(oNew, this.include(oInclude)); }
@@ -598,7 +597,7 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 			var fEmpty = function() {};
 			this._useJsonize = JSON.stringify({o: fEmpty}, JUL.makeCaller(JUL.UI, '_jsonReplacer')).indexOf('function') < 0;
 		}
-		var sData = this._useJsonize ? JSON.stringify(this._jsonize(oData)) : JSON.stringify(oData, JUL.makeCaller(this, '_jsonReplacer'));
+		var sData = this._useJsonize ? JSON.stringify(this._jsonize(oData)) : JSON.stringify(oData, this._getJul().makeCaller(this, '_jsonReplacer'));
 		if (!sData) { return ''; }
 		var ca = '#';
 		var c = '';
@@ -930,6 +929,14 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 			 JUL.UI._xmlParser.loadXML(sXml);
 			return  JUL.UI._xmlParser; 
 		}
+	},
+	/**
+		Gets the actual JUL instance this object belongs to
+		@returns	{Object}	The JUL instance
+		@private
+	*/
+	_getJul: function() {
+		return JUL;
 	},
 	/**
 		Callback used internally by the serializer

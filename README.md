@@ -41,40 +41,62 @@ Usage the Node’s way
 
 ```javascript
 var jul = require('jul');
-// a configuration object
-var tree = {name: 'Main', id: 'global.NS.tree', size: 5,
-	children: [{name: 'Child1', left: 2, top: 2}, {name: 'Child2', widths: [4, 8, 12]}]
+// a configuration object 
+var tree = {name: 'Main', id: 'NS.tree', size: 5,
+    children: [{name: 'Child1', left: 2, top: 2}, {name: 'Child2', widths: [4, 8, 12]}]
 };
-// create a parser
+// create a parser 
 var parser = jul.parser();
-// instantiate the configuration object
+// instantiate the configuration object 
 parser.create(tree);
-// create a JUL.Ref reference to the exported variable NS.tree
+// create a JUL.Ref reference to the exported variable NS.tree 
 var ref = jul.ref(NS, 'tree');
-// print the instantiated object
+// print the instantiated object 
 console.log(parser.obj2str(ref.val()));
-````
+// the same result using a JUL instance bound to a local namespace
+var localVar = {};
+var localJul = jul.instance({nsRoot: localVar});
+// create a parser 
+var localParser = localJul.parser({defaultClass: 'global.Object'});
+// instantiate the configuration object 
+localParser.create(tree);
+// create a JUL.Ref reference to the exported variable localVar.NS.tree 
+var localRef = jul.ref(localVar.NS, 'tree');
+// print the instantiated object 
+console.log(localParser.obj2str(localRef.val()));
+```
 
 Usage the JUL’s way
 -------------------
 
 ```javascript
-// Add "jul.js" as an external JS in the web page, or require('jul') in Node.
-// JUL & tools always remain global namespaces.
-
-// a configuration object
-var oTree = {name: 'Main', id: 'global.NS.tree', size: 5,
-	children: [{name: 'Child1', left: 2, top: 2}, {name: 'Child2', widths: [4, 8, 12]}]
+// Add "jul.js" as an external JS in the web page, or require('jul') in Node. 
+// JUL & tools always remain global namespaces. 
+ 
+// a configuration object 
+var oTree = {name: 'Main', id: 'NS.tree', size: 5,
+    children: [{name: 'Child1', left: 2, top: 2}, {name: 'Child2', widths: [4, 8, 12]}]
 };
-// create a parser
+// create a parser 
 var oParser = new JUL.UI.Parser();
-// instantiate the configuration object
+// instantiate the configuration object 
 oParser.create(oTree);
-// create a JUL.Ref reference to the exported variable NS.tree
+// create a JUL.Ref reference to the exported variable NS.tree 
 var oRef = new JUL.Ref(NS, 'tree');
-// print the instantiated object
-console.log(oParser.obj2str(oRef.val()));
-````
+// print the instantiated object 
+document.write(oParser.obj2str(oRef.val()));
+// the same result using a JUL instance bound to a local namespace
+var oLocalVar = {};
+var oLocalJul = new JUL.Instance({nsRoot: oLocalVar});
+// create a parser 
+var oLocalParser = new oLocalJul.ui.Parser({defaultClass: 'global.Object'});
+// instantiate the configuration object 
+oLocalParser.create(oTree);
+// create a JUL.Ref reference to the exported variable oLocalVar.NS.tree 
+var oLocalRef = new JUL.Ref(oLocalVar.NS, 'tree');
+// print the instantiated object 
+document.write(oLocalParser.obj2str(oLocalRef.val()));
+```
 
 Examples & documentation
 ------------------------

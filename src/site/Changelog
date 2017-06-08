@@ -1,3 +1,6 @@
+v1.4.9 (2017-06-09):
+  * ability to create JUL instances and to bound them to local namespaces
+  * enhanced JUL.apply() utility with key filtering
 v1.4.5 (2017-03-24):
   * added support for instantiating sparse configuration trees; see the last argument of JUL.UI.create()
 v1.4.0 (2017-03-11):

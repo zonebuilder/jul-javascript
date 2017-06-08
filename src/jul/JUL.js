@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.4.5
+	JUL - The JavaScript UI Language version 1.4.9
 	Copyright (c) 2012 - 2017 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -114,25 +114,56 @@ global.JUL = {};
 */
 JUL = {
 	/**
+		This allows setting a default root namespace instead of the global one
+		@type	Object
+	*/
+	nsRoot: null,
+	/**
 		JUL version
 		@type	String
 	*/
-	version: '1.4.5',
+	version: '1.4.9',
+	/**
+		Creates instances of the JUL global, which can be used as local variables.
+		E.g. <code>var oInstance = new JUL.Instance({nsRoot: myLocalVar});</code>
+		Special members of an instance:<ul>
+		<li>ui - instance of JUL.UI.Parser with JUL.UI defaults applied</li>
+		<li>ref - the same as JUL.Ref() factory</li>
+		<li>parser - shortcut to this.ui.Parser() factory</li></ul>
+		@class	A class for creating instances of the main JUL object
+		@param	{Object}	[oConfig]	Configuration object
+	*/
+	Instance: function(oConfig) {
+		if (!(this instanceof JUL.Instance)) { return new JUL.Instance(oConfig); }
+		JUL.apply(this, oConfig);
+		this.ref = JUL.Ref;
+		this.ui = new JUL.UI.Parser();
+		var oThis = this;
+		this.ui._getJul = function() { return oThis; };
+		this.parser = this.ui.Parser;
+	},
 	/**
 		Applies an object or an array of objects to a given object
 		@param	{Object}	oSource	The source object to apply to
 		@param	{Object}	oAdd	An Object or array of Objects to apply
-		@param	{Boolean}	[bDontReplace]	Set it to true to don't replace existing members
+		@param	{Boolean}	bDontReplace	Set it to true to don't replace existing members
+		@param	{Array}	[aFilterOut]	If not null, the keys in this array will not be applied over
+		@param	{Array}	[aFilterIn]	If not null, only the keys in this array will be applied over
 		@returns	{Object}	The source object with the applied members
 	*/
-	apply: function(oSource, oAdd, bDontReplace) {
+	apply: function(oSource, oAdd, bDontReplace, aFilterOut, aFilterIn) {
 		if (!oAdd || typeof oAdd !== 'object') { return oSource; }
+		if (aFilterOut) { aFilterOut = [].concat(aFilterOut); }
+		if (aFilterIn) { aFilterIn = [].concat(aFilterIn); }
 		var oNew = bDontReplace ? {} : oSource;
 		var aMembers = [].concat(oAdd);
 		for (var i = 0; i < aMembers.length; i++) {
 			oAdd = aMembers[i];
 			for (var sItem in oAdd) {
-				if (oAdd.hasOwnProperty(sItem)) { oNew[sItem] = oAdd[sItem]; }
+				if (oAdd.hasOwnProperty(sItem) &&
+					(!aFilterOut || aFilterOut.indexOf(sItem) < 0) && (!aFilterIn || aFilterIn.indexOf(sItem) > -1)) {
+					oNew[sItem] = oAdd[sItem];
+				}
 			}
 		}
 		if (!bDontReplace) { return oSource; }
@@ -148,13 +179,18 @@ JUL = {
 		@returns	{Object}	The requested member or undefined if not found
 	*/
 	get: function(sPath, oRoot) {
-		var oCurrent = oRoot || global;
+		var oCurrent = oRoot || this.nsRoot || global;
 		if (!sPath) { return oCurrent; }
 		if (typeof sPath !== 'string') { return sPath; }
 		var aNames = sPath.replace(/\\\./g, ':::::').split('.');
+		if (!oRoot && aNames.length > 1 && ('window' === aNames[0] || 'global' === aNames[0])) {
+			aNames.shift();
+			oCurrent = global;
+		}
 		var sItem = '';
 		while (aNames.length) {
 			sItem = aNames.shift().replace(/:{5}/g, '.');
+			if (!sItem) { continue; }
 			if (typeof oCurrent[sItem] === 'undefined') { return oCurrent[sItem]; }
 			oCurrent = oCurrent[sItem];
 		}
@@ -197,10 +233,14 @@ JUL = {
 		var aNames = sPath ? sPath.replace(/\\\./g, ':::::').split('.') : [];
 		var sItem = '';
 		var oRe = /^(\d|[1-9]\d+)$/;
-		var oCurrent = oRoot || global;
-		if (!oRoot && aNames.length && ('window' === aNames[0] || 'global' === aNames[0])) { aNames.shift(); }
+		var oCurrent = oRoot || this.nsRoot || global;
+		if (!oRoot && aNames.length > 1 && ('window' === aNames[0] || 'global' === aNames[0])) {
+			aNames.shift();
+			oCurrent = global;
+		}
 		while (aNames.length) {
 			sItem = aNames.shift().replace(/:{5}/g, '.');
+			if (!sItem) { continue; }
 			if (typeof oCurrent[sItem] === 'undefined') { oCurrent[sItem] = aNames.length && oRe.test(aNames[0]) ? [] : {}; }
 				if (!aNames.length && typeof oInit !== 'undefined') { oCurrent[sItem] = oInit; }
 			oCurrent = oCurrent[sItem];
@@ -246,6 +286,9 @@ JUL = {
 		return ({}).toString.call(oData).match(/\w+/g)[1];
 	}
 };
+
+/* make JUL.Instance to inherit the JUL members */
+JUL.apply(JUL.Instance.prototype, JUL, false, ['Instance', 'Ref', 'UI', 'version']);
 
 /* add 'indexOf' Array method, if not present */
 if (typeof Array.prototype.indexOf !== 'function') {
