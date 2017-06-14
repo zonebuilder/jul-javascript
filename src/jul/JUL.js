@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.4.9
+	JUL - The JavaScript UI Language version 1.5
 	Copyright (c) 2012 - 2017 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -122,7 +122,7 @@ JUL = {
 		JUL version
 		@type	String
 	*/
-	version: '1.4.9',
+	version: '1.5',
 	/**
 		Creates instances of the JUL global, which can be used as local variables.
 		E.g. <code>var oInstance = new JUL.Instance({nsRoot: myLocalVar});</code>
@@ -135,11 +135,19 @@ JUL = {
 	*/
 	Instance: function(oConfig) {
 		if (!(this instanceof JUL.Instance)) { return new JUL.Instance(oConfig); }
-		JUL.apply(this, oConfig);
-		this.ref = JUL.Ref;
-		this.ui = new JUL.UI.Parser();
+		JUL.apply(this, oConfig || {});
 		var oThis = this;
-		this.ui._getJul = function() { return oThis; };
+		var fInstance = function() { return oThis; };
+		var FRef = function(oRef, sKey) {
+			if (!(this instanceof FRef)) { return new FRef(oRef, sKey); }
+			JUL.Ref.call(this, oRef, sKey);
+		};
+		FRef. prototype = new JUL.Ref();
+		FRef.prototype.constructor = FRef;
+		FRef.prototype._getJulInstance = fInstance;
+		this.ref = FRef;
+		this.ui = new JUL.UI.Parser();
+		this.ui._getJulInstance = fInstance;
 		this.parser = this.ui.Parser;
 	},
 	/**
@@ -195,6 +203,19 @@ JUL = {
 			oCurrent = oCurrent[sItem];
 		}
 		return oCurrent;
+	},
+	/**
+		Gets the JUL instance associated with a child object (e.g. a parser, a reference)
+		@param	{Object}	oChild	Child object
+		@returns	{Object}	JUL instance or null if not available
+	*/
+	getInstance: function(oChild) {
+		if (oChild instanceof JUL.Ref || oChild instanceof JUL.UI.Parser) {
+			return oChild._getJulInstance ? oChild._getJulInstance() : JUL;
+		}
+		else {
+			return oChild === JUL.UI ? JUL : null;
+		}
 	},
 	/**
 		Creates a wrapper that will call a certain function in a specific scope.
@@ -284,11 +305,30 @@ JUL = {
 	*/
 	typeOf: function(oData) {
 		return ({}).toString.call(oData).match(/\w+/g)[1];
+	},
+	/**
+		Gets the JUL instance getter function for a given namespace root, with caching
+		@param	{Object}	[oNSRoot]	Namespace root
+		@returns	{Function}	Instance getter
+		@private
+	*/
+	_getAutoInstance: function(oNSRoot) {
+		oNSRoot = oNSRoot || null;
+		if (oNSRoot === this.nsRoot) { return this; }
+		this._autoInstances = this._autoInstances || [];
+		for (var i = 0; i < this._autoInstances.length; i++) {
+			if (oNSRoot === this._autoInstances[i].nsRoot) { return this._autoInstances[i].getInstance; }
+		}
+		var oInstance = new JUL.Instance({nsRoot: oNSRoot});
+		var fInstance = function() { return oInstance; };
+		if (this._autoInstances.length > 1023) { this._autoInstances = this._autoInstances.slice(64, 1024); }
+		this._autoInstances.push({nsRoot: oNSRoot, getInstance: fInstance});
+		return fInstance;
 	}
 };
 
 /* make JUL.Instance to inherit the JUL members */
-JUL.apply(JUL.Instance.prototype, JUL, false, ['Instance', 'Ref', 'UI', 'version']);
+JUL.apply(JUL.Instance.prototype, JUL, false, ['Instance', 'Ref', 'UI', 'version', '_getAutoInstance']);
 
 /* add 'indexOf' Array method, if not present */
 if (typeof Array.prototype.indexOf !== 'function') {

@@ -1,5 +1,8 @@
+v1.5 (2017-06-14):
+  * added JUL.getInstance() as a standard way to retrieve the JUL instance of the created objects
+  * JUL.Ref() and JUL.UI.Parser() accept a 'nsRoot' configuration property to auto-bind to a custom namespace root
 v1.4.9 (2017-06-09):
-  * ability to create JUL instances and to bound them to local namespaces
+  * ability to create JUL instances and to bind them to local namespaces
   * enhanced JUL.apply() utility with key filtering
 v1.4.5 (2017-03-24):
   * added support for instantiating sparse configuration trees; see the last argument of JUL.UI.create()

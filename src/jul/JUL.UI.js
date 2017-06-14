@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.4.9
+	JUL - The JavaScript UI Language version 1.5
 	Copyright (c) 2012 - 2017 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -139,7 +139,11 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 				(this && this.ui && this.ui instanceof JUL.UI.Parser ?
 					new this.ui.Parser(oConfig) :  new JUL.UI.Parser(oConfig));
 		}
-		JUL.apply(this, oConfig);
+		oConfig = oConfig || {};
+		if (oConfig.nsRoot) {
+			this._getJulInstance = JUL._getAutoInstance(oConfig.nsRoot);
+		}
+		JUL.apply(this, oConfig, false, 'nsRoot');
 		/* carry on the cyclic direct inheritance */
 		this.Parser = function(oConfig) {
 			var oReturn = JUL.UI.Parser.call(this, oConfig);
@@ -362,7 +366,7 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 			if (['window.', 'global.'].indexOf(sNamespace.substr(0, 7)) > -1) { oConfig[this.idProperty] = oConfig[this.idProperty].substr(7); }
 			if (sNamespace.substr(0, 1) === '.') { oConfig[this.idProperty] = oConfig[this.idProperty].substr(1); }
 		}
-		var oJul = this._getJul();
+		var oJul = JUL.getInstance(this);
 		var sClass = oConfig[this.classProperty];
 		if (!this.customFactory) { delete oConfig[this.classProperty]; }
 		var oNew = this.customFactory ? oJul.get(this.customFactory).call(this, oConfig) : this.factory(sClass, oConfig);
@@ -382,7 +386,7 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 	*/
 	createDom: function(oConfig, oWidget) {
 		if (!oConfig) { return null; }
-		var oJul = this._getJul();
+		var oJul = JUL.getInstance(this);
 		var nNS = this.useTags ? -1 : oConfig[this.classProperty].indexOf(':');
 		var sNS = nNS > -1 ? oConfig[this.classProperty].substr(0, nNS) : (this.useTags ? oConfig[this.classProperty] : 'html');
 		var oDocument = window.document;
@@ -520,7 +524,7 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 		@returns	{Object}	The new created object
 	*/
 	factory: function(sClass, oArgs) {
-		var FNew = this._getJul().get(sClass);
+		var FNew = JUL.getInstance(this).get(sClass);
 		if (typeof FNew !== 'function') { return null; }
 		if (oArgs) {
 			return new (FNew)(oArgs);
@@ -561,7 +565,7 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 			return JUL.apply(oNew, oData);
 		}
 		fMerger = fMerger || this._includeMerger;
-		var oJul = this._getJul();
+		var oJul = JUL.getInstance(this);
 		var aIncludes = [].concat(oData[this.includeProperty]);
 		for (var i = 0; i < aIncludes.length; i++) {
 			var oInclude = oJul.get(aIncludes[i]);
@@ -597,7 +601,7 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 			var fEmpty = function() {};
 			this._useJsonize = JSON.stringify({o: fEmpty}, JUL.makeCaller(JUL.UI, '_jsonReplacer')).indexOf('function') < 0;
 		}
-		var sData = this._useJsonize ? JSON.stringify(this._jsonize(oData)) : JSON.stringify(oData, this._getJul().makeCaller(this, '_jsonReplacer'));
+		var sData = this._useJsonize ? JSON.stringify(this._jsonize(oData)) : JSON.stringify(oData, JUL.getInstance(this).makeCaller(this, '_jsonReplacer'));
 		if (!sData) { return ''; }
 		var ca = '#';
 		var c = '';
@@ -929,14 +933,6 @@ JUL.apply(JUL.UI, /** @lends JUL.UI */ {
 			 JUL.UI._xmlParser.loadXML(sXml);
 			return  JUL.UI._xmlParser; 
 		}
-	},
-	/**
-		Gets the actual JUL instance this object belongs to
-		@returns	{Object}	The JUL instance
-		@private
-	*/
-	_getJul: function() {
-		return JUL;
 	},
 	/**
 		Callback used internally by the serializer

@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.4.9
+	JUL - The JavaScript UI Language version 1.5
 	Copyright (c) 2012 - 2017 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -29,20 +29,28 @@ JUL.Ref = function(oRef, sKey) {
 	if (!(this instanceof JUL.Ref)) {
 		return new JUL.Ref(oRef, sKey);
 	}
-	if (oRef instanceof JUL.Ref) {
-		JUL.apply(this, oRef);
-		return;
-	}
-	this._ref = oRef;	
-	this._key = sKey;
-	if (typeof oRef === 'object' && oRef.ref) {
-		this._ref = oRef.ref;
-		this._key = oRef.key;
-		for (var sMember in oRef) {
-			if (oRef.hasOwnProperty(sMember) && sMember !== 'key' && sMember !== 'ref') {
-				this[sMember] = oRef[sMember];
+	if (typeof oRef === 'undefined') { return; }
+	if (typeof sKey === 'undefined') {
+		if (oRef instanceof JUL.Ref) {
+			JUL.apply(this, oRef);
+			return;
+		}
+		if (JUL.typeOf(oRef) === 'Object' && oRef.hasOwnProperty('ref') && oRef.hasOwnProperty('key')) {
+			if (oRef.nsRoot) {
+				this._getJulInstance = JUL._getAutoInstance(oRef.nsRoot);
+			}
+			this._ref = oRef.ref;
+			this._key = oRef.key;
+			for (var sMember in oRef) {
+				if (oRef.hasOwnProperty(sMember) && sMember !== 'key' && sMember !== 'ref' && sMember !== 'nsRoot') {
+					this[sMember] = oRef[sMember];
+				}
 			}
 		}
+	}
+	else {
+		this._ref = oRef;	
+		this._key = sKey;
 	}
 };
 
