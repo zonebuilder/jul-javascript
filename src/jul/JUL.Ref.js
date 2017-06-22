@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.5
+	JUL - The JavaScript UI Language version 1.5.1
 	Copyright (c) 2012 - 2017 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -31,11 +31,20 @@ JUL.Ref = function(oRef, sKey) {
 	}
 	if (typeof oRef === 'undefined') { return; }
 	if (typeof sKey === 'undefined') {
-		if (oRef instanceof JUL.Ref) {
-			JUL.apply(this, oRef);
-			return;
+		if (oRef && typeof oRef === 'string') {
+			oRef = oRef.replace(/\\\./g, ':::::').split('.').map(function(sItem) { return sItem.replace(/:{5}/g, '\\.'); });
+			sKey = oRef.pop();
+			var oInstance = JUL.getInstance(this);
+			oRef = oRef.length ? oInstance.get(oRef.join('.')) : oInstance;
+			if (typeof oRef !== 'undefined') {
+				this._ref = oRef;
+				this._key = sKey;
+			}
 		}
-		if (JUL.typeOf(oRef) === 'Object' && oRef.hasOwnProperty('ref') && oRef.hasOwnProperty('key')) {
+		else if (oRef instanceof JUL.Ref) {
+			JUL.apply(this, oRef);
+		}
+		else if (JUL.typeOf(oRef) === 'Object' && oRef.hasOwnProperty('ref') && oRef.hasOwnProperty('key')) {
 			if (oRef.nsRoot) {
 				this._getJulInstance = JUL._getAutoInstance(oRef.nsRoot);
 			}
@@ -82,10 +91,21 @@ JUL.apply(JUL.Ref.prototype, /** @lends JUL.Ref.prototype */ {
 		@returns	{Mixed}	The referenced object or member name if getting, nothing if setting
 	*/
 	ref: function(oRef, sKey) {
-		if (!oRef) { return this._ref; }
+		if (typeof oRef === 'undefined') { return this._ref; }
 		if (oRef === true) { return this._key; }
-		if (oRef) { this._ref = oRef; }
 		if (typeof sKey !== 'undefined') { this._key = sKey; }
+		else if (oRef && typeof oRef === 'string') {
+			oRef = oRef.replace(/\\\./g, ':::::').split('.').map(function(sItem) { return sItem.replace(/:{5}/g, '\\.'); });
+			sKey = oRef.pop();
+			var oInstance = JUL.getInstance(this);
+			oRef = oRef.length ? oInstance.get(oRef.join('.')) : oInstance;
+			if (typeof oRef !== 'undefined') {
+				this._ref = oRef;
+				this._key = sKey;
+			}
+			return this;
+		}
+		if (typeof oRef !== 'undefined') { this._ref = oRef; }
 		return this;
 	},
 	/**

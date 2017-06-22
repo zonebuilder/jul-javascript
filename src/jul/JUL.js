@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.5
+	JUL - The JavaScript UI Language version 1.5.1
 	Copyright (c) 2012 - 2017 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -122,7 +122,7 @@ JUL = {
 		JUL version
 		@type	String
 	*/
-	version: '1.5',
+	version: '1.5.1',
 	/**
 		Creates instances of the JUL global, which can be used as local variables.
 		E.g. <code>var oInstance = new JUL.Instance({nsRoot: myLocalVar});</code>
