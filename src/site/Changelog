@@ -1,3 +1,5 @@
+v1.5.2 (2017-06-24):
+  * dotted path escaping fix in JUL.Ref
 v1.5.1 (2017-06-22):
   * JUL.Ref() accepts a dotted path parameter to create a reference relative to its namespace root
 v1.5 (2017-06-14):

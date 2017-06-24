@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.5.1
+	JUL - The JavaScript UI Language version 1.5.2
 	Copyright (c) 2012 - 2017 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -32,10 +32,9 @@ JUL.Ref = function(oRef, sKey) {
 	if (typeof oRef === 'undefined') { return; }
 	if (typeof sKey === 'undefined') {
 		if (oRef && typeof oRef === 'string') {
-			oRef = oRef.replace(/\\\./g, ':::::').split('.').map(function(sItem) { return sItem.replace(/:{5}/g, '\\.'); });
-			sKey = oRef.pop();
-			var oInstance = JUL.getInstance(this);
-			oRef = oRef.length ? oInstance.get(oRef.join('.')) : oInstance;
+			oRef = oRef.replace(/\\\./g, ':::::').split('.');
+			sKey = oRef.pop().replace(/:{5}/g, '.');
+			oRef = JUL.getInstance(this).get(oRef.join('.').replace(/:{5}/g, '\\.'));
 			if (typeof oRef !== 'undefined') {
 				this._ref = oRef;
 				this._key = sKey;
@@ -95,17 +94,16 @@ JUL.apply(JUL.Ref.prototype, /** @lends JUL.Ref.prototype */ {
 		if (oRef === true) { return this._key; }
 		if (typeof sKey !== 'undefined') { this._key = sKey; }
 		else if (oRef && typeof oRef === 'string') {
-			oRef = oRef.replace(/\\\./g, ':::::').split('.').map(function(sItem) { return sItem.replace(/:{5}/g, '\\.'); });
-			sKey = oRef.pop();
-			var oInstance = JUL.getInstance(this);
-			oRef = oRef.length ? oInstance.get(oRef.join('.')) : oInstance;
+			oRef = oRef.replace(/\\\./g, ':::::').split('.');
+			sKey = oRef.pop().replace(/:{5}/g, '.');
+			oRef = JUL.getInstance(this).get(oRef.join('.').replace(/:{5}/g, '\\.'));
 			if (typeof oRef !== 'undefined') {
 				this._ref = oRef;
 				this._key = sKey;
 			}
 			return this;
 		}
-		if (typeof oRef !== 'undefined') { this._ref = oRef; }
+		if (oRef !== false) { this._ref = oRef; }
 		return this;
 	},
 	/**
