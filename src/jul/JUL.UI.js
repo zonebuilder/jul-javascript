@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.5.3
+	JUL - The JavaScript UI Language version 1.5.4
 	Copyright (c) 2012 - 2017 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -238,7 +238,7 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		Object instances are created bottom-up by default with children instances put in the parent config, 
 		or top-down with parent instance put in the children configs
 		@param	{Object}	oTree	Config tree root or array of root configs
-		@param	{Object}	[oBindings]	Config tree logic that will apply to the corresponding nodes
+		@param	{Object|Array}	[oBindings]	Config tree logic that will apply to the corresponding nodes
 		@param	{Object}	[oParent]	Optional parent object of the root instance when instantiating top-down
 		@param	{Boolean}	[bSparse]	This allows parsing a ‘sparse’ tree, i.e. a tree where some component nodes are not direct children of other components.
 		Every node which has a class or a tag set will be instantiated, regardless of its membership.
@@ -248,9 +248,22 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 	create: function(oTree, oBindings, oParent, bSparse) {
 			var sType = JUL.typeOf(oTree);
 			if (['Array', 'Object'].indexOf(sType) < 0) { return null; }
-			if (JUL.typeOf(oBindings) !== 'Object') { oBindings = null; }
-			if (oBindings && oBindings[this.includeProperty]) {
-					oBindings = this.include(oBindings);
+			if (['Array', 'Object'].indexOf(JUL.typeOf(oBindings)) < 0) { oBindings = null; }
+			if (oBindings) {
+				var aBindings = [].concat(oBindings);
+				oBindings = {};
+				for (var m = 0; m < aBindings.length; m++) {
+					var oBinding = aBindings[m];
+					if (oBinding[this.includeProperty]) {
+						if (!oBindings[this.includeProperty]) { oBindings[this.includeProperty] = []; }
+						var aItems = [].concat(oBinding[this.includeProperty]);
+						for (var p = 0; p < aItems.length; p++) {
+							if (oBindings[this.includeProperty].indexOf(aItems[p]) < 0) { oBindings[this.includeProperty].push(aItems[p]); }
+						}
+					}
+					JUL.apply(oBindings, oBinding, false, this.includeProperty);
+				}
+				if (oBindings[this.includeProperty]) { oBindings = this.include(oBindings); }
 			}
 			if (sType === 'Array') {
 				return oTree.map(function(oItem) {
@@ -575,13 +588,17 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		if (!oData[this.includeProperty]) {
 			return JUL.apply(oNew, oData);
 		}
-		fMerger = fMerger || this._includeMerger;
+		var bMerger = fMerger && typeof fMerger === 'function';
+		if (!bMerger && this._includeMerger) {
+			fMerger = this._includeMerger;
+			bMerger = typeof fMerger === 'function';
+		}
 		var oJul = JUL.getInstance(this);
 		var aIncludes = [].concat(oData[this.includeProperty]);
 		for (var i = 0; i < aIncludes.length; i++) {
 			var oInclude = oJul.get(aIncludes[i]);
 			if (oInclude) {
-				if (fMerger) {  fMerger.call(this, oNew, this.include(oInclude, fMerger)); }
+				if (bMerger) {  fMerger.call(this, oNew, this.include(oInclude, fMerger)); }
 				else { JUL.apply(oNew, this.include(oInclude)); }
 			}
 		}
@@ -589,7 +606,7 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		if (oData[this.bindingProperty] && aCid.indexOf(oData[this.bindingProperty]) < 0) {
 			aCid.push(oData[this.bindingProperty]);
 		}
-		if (fMerger) { fMerger.call(this, oNew, oData); }
+		if (bMerger) { fMerger.call(this, oNew, oData); }
 		else { JUL.apply(oNew, oData); }
 		if (aCid.length) { oNew[this.bindingProperty] = aCid; }
 		delete oNew[this.includeProperty];
