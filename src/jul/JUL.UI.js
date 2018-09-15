@@ -1,6 +1,6 @@
 /*
-	JUL - The JavaScript UI Language version 1.5.4
-	Copyright (c) 2012 - 2017 The Zonebuilder <zone.builder@gmx.com>
+	JUL - The JavaScript UI Language version 1.5.5
+	Copyright (c) 2012 - 2018 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
  */
@@ -404,7 +404,7 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		var oJul = JUL.getInstance(this);
 		var nNS = this.useTags ? -1 : oConfig[this.classProperty].indexOf(':');
 		var sNS = nNS > -1 ? oConfig[this.classProperty].substr(0, nNS) : (this.useTags ? oConfig[this.classProperty] : 'html');
-		var oDocument = window.document;
+		var oDocument = this._domDocument || window.document;
 		var bAmple = typeof window.ample === 'object';
 		if (bAmple) { oDocument = window.ample; }
 		oWidget = oWidget || (sNS === 'html' || typeof oDocument.createElementNS !== 'function' ?
@@ -463,7 +463,7 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 				oWidget.setAttribute('style', oConfig.style);
 			}
 			else {
-				oWidget.style.cssText = oWidget.style.cssText +';'+ oConfig.style;
+				oWidget.style.cssText = oWidget.style.cssText +';' + oConfig.style;
 			}
 		}
 		if (oConfig[this.htmlProperty]) {
@@ -865,6 +865,12 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		return bReturnString ? this.obj2str(oData) : oData;
 	},
 	/**
+		May be set to a custom document object to use createDom() for various DOM implementations
+		@type	Object
+		@private
+	*/
+	_domDocument: null,
+	/**
 		May be set to a 'include' merging function used globally by the parser.
 		See JUL.UI.include() parameters.
 		@type	Function
@@ -946,20 +952,20 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		@private
 	*/
 	_createXml: function(sXml) {
-		if (window.DOMParser) {
-			JUL.UI._xmlParser = JUL.UI._xmlParser || new DOMParser();
+		if (typeof DOMParser === 'function') {
+			this._xmlParser = this._xmlParser || new DOMParser();
 			try {
-				return JUL.UI._xmlParser.parseFromString(sXml, 'application/xml');
+				return this._xmlParser.parseFromString(sXml, 'application/xml');
 			}
 			catch(e) {
 				return {error: e.message};
 			}
 		}
 		else {
-			JUL.UI._xmlParser = JUL.UI._xmlParser || new ActiveXObject('Msxml2.DOMDocument.3.0');
-			 JUL.UI._xmlParser.async = false;
-			 JUL.UI._xmlParser.loadXML(sXml);
-			return  JUL.UI._xmlParser; 
+			this._xmlParser = this._xmlParser || new ActiveXObject('Msxml2.DOMDocument.3.0');
+			 this._xmlParser.async = false;
+			 this._xmlParser.loadXML(sXml);
+			return  this._xmlParser; 
 		}
 	},
 	/**

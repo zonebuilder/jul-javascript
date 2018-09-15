@@ -1,3 +1,6 @@
+v1.5.5 (2018-09-15):
+  * added _domDocument property to the parser to use createDom() with custom DOM trees http://www.npmjs.com/search?q=keywords:virtual-dom
+  * xml2jul() converts a XML string to a JavaScript object when a DOMParser is detected http://www.npmjs.com/search?q=keywords:domparser
 v1.5.4 (2017-11-01):
   * ability to pass the second argument of JUL.UI.create() as an array of logic configs
 v1.5.3 (2017-09-01):
