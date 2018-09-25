@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.5.5
+	JUL - The JavaScript UI Language version 1.5.6
 	Copyright (c) 2012 - 2018 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -404,7 +404,7 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		var oJul = JUL.getInstance(this);
 		var nNS = this.useTags ? -1 : oConfig[this.classProperty].indexOf(':');
 		var sNS = nNS > -1 ? oConfig[this.classProperty].substr(0, nNS) : (this.useTags ? oConfig[this.classProperty] : 'html');
-		var oDocument = this._domDocument || window.document;
+		var oDocument = this._domDocument ? oJul.get(this._domDocument) : window.document;
 		var bAmple = typeof window.ample === 'object';
 		if (bAmple) { oDocument = window.ample; }
 		oWidget = oWidget || (sNS === 'html' || typeof oDocument.createElementNS !== 'function' ?
@@ -500,6 +500,50 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 			oConfig[this.parentProperty].appendChild(oWidget);
 		}
 		return oWidget;
+	},
+	/**
+		Uses a variant of createElement(sClass, oProps, aChildren) like in React or Vue.js to create a V-DOM node.
+		createElement() must be present in the outer environment or the _domDocument parser property must be set 
+		t
+		to an object with the appropriate method.
+		@param	{Object}	oConfig	Config object
+		@returns	{Object}	V-DOM node
+	*/
+	createVDom: function(oConfig) {
+		if (!oConfig) { return null; }
+		var oJul = JUL.getInstance(this);
+		var bCreate = typeof createElement === 'function';
+		var oDocument = this._domDocument ? oJul.get(this._domDocument) : null;
+		var fCreate = bCreate ? createElement : (oDocument ? oDocument.createElement : null);
+		if (!fCreate) { return null; }
+		var sTag = this.useTags ? oConfig[this.tagProperty] : oConfig[this.classProperty];
+		if (typeof sTag === 'string') {
+			var aTag = sTag.split('.', 2);
+			if (aTag.length > 1 && this._regExps.variable.test(aTag[0])) {
+				sTag = oJul.get(sTag);
+			}
+			else if (this.useTags && oConfig[this.classProperty] !== this.defaultClass) {
+				sTag = oConfig[this.classProperty] + ':' + sTag;
+			}
+		}
+		delete oConfig[this.classProperty];
+		delete oConfig[this.tagProperty];
+		var aChildren = [];
+		if (oConfig[this.htmlProperty]) { aChildren.push(oConfig[this.htmlProperty]); }
+		delete oConfig[this.htmlProperty];
+		if (oConfig[this.cssProperty]) { oConfig.className = oConfig[this.cssProperty]; }
+		delete oConfig[this.cssProperty];
+		aChildren = aChildren.concat(oConfig[this.childrenProperty] || []);
+		delete oConfig[this.childrenProperty];
+		for (var sItem in oConfig) {
+			if (oConfig.hasOwnProperty(sItem) && typeof oConfig[sItem] === 'string' &&
+				oConfig[sItem].substr(0, 2) === '{<' && oConfig[sItem].substr(-2) === '>}') {
+				oConfig[sItem] = this.create(this.xml2jul(oConfig[sItem].slice(1, -1)));
+			}
+		}
+		if (!aChildren.length) { aChildren = null; }
+		else if (aChildren.length < 2) { aChildren = aChildren[0]; }
+		return bCreate ? fCreate(sTag, oConfig, aChildren) : fCreate.call(oDocument, sTag, oConfig, aChildren);
 	},
 	/**
 		Expands a compacted config tree converting all 'membersProperties' properties into 'childrenProperty' items

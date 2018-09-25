@@ -1,3 +1,5 @@
+v1.5.6 (2018-09-25):
+  * added createVDom() custom factory to ease using JUL config trees inside your render() function
 v1.5.5 (2018-09-15):
   * added _domDocument property to the parser to use createDom() with custom DOM trees http://www.npmjs.com/search?q=keywords:virtual-dom
   * xml2jul() converts a XML string to a JavaScript object when a DOMParser is detected http://www.npmjs.com/search?q=keywords:domparser

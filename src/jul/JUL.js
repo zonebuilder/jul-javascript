@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.5.5
+	JUL - The JavaScript UI Language version 1.5.6
 	Copyright (c) 2012 - 2018 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -122,7 +122,7 @@ JUL = {
 		JUL version
 		@type	String
 	*/
-	version: '1.5.5',
+	version: '1.5.6',
 	/**
 		Creates instances of the JUL global, which can be used as local variables.
 		E.g. <code>var oInstance = new JUL.Instance({nsRoot: myLocalVar});</code>
@@ -336,9 +336,6 @@ JUL = {
 	}
 };
 
-/* make JUL.Instance to inherit the JUL members */
-JUL.apply(JUL.Instance.prototype, JUL, false, ['Instance', 'Ref', 'UI', 'version', '_getAutoInstance']);
-
 /* add 'indexOf' Array method, if not present */
 if (typeof Array.prototype.indexOf !== 'function') {
 	Array.prototype.indexOf = function(oSearch, nStart) {
@@ -360,6 +357,9 @@ if (typeof Array.prototype.map !== 'function') {
 		return aResult;
 	};
 }
+
+/* make JUL.Instance to inherit the JUL members */
+JUL.apply(JUL.Instance.prototype, JUL, false, ['Instance', 'Ref', 'UI', 'version', '_getAutoInstance']);
 
 })(typeof global !== 'undefined' ? global : window);
 
