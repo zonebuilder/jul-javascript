@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>vJUL Calculator - Vue.js</title>
+<link rel="stylesheet" type="text/css" href="calc/calc.css?v=1.0" />
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.runtime.min.js"></script>
+<script type="text/javascript" src="../js/jul.min.js?v=1.6" ></script>
+<script type="text/javascript" src="calc/calc.js?v=1.0" ></script>
+<script type="text/javascript" src="calc/calc-vue.js?v=1.0" ></script>
+  </head>
+<body onclick="Calc.onClick(event)" onkeydown="Calc.onKey(event)">
+<div id="content">
+	<!--[if lt IE 9]>
+	<h3><em font-family="serif">Internet Explorer 9 or greater required to run this app.</em></h3>
+	<![endif]-->
+	<div id="app"></div>
+	<h3>UI config</h3>
+	<textarea id="ui-code" class="code" readonly></textarea>
+	<h3>render() method</h3>
+	<textarea id="render-code" class="code" readonly></textarea>
+</div>
+<div id="footer">
+  <script type="text/javascript">
+  document.write('JUL Calculator v' + Calc.version + '.' +
+  ' Copyright &copy; ' + (new Date()).getFullYear() + ' ' +
+  '<a target="_blank" href="https://www.google.com/search?hl=en&num=50&start=0&safe=0&filter=0&nfpr=1&q=The+Zonebuilder+web+development+programming+IT+society+philosophy+politics">The Zonebuilder<\/a>.' +
+  ' Powered by <a target="_blank" href="https://sourceforge.net/projects/jul-javascript/">JUL<\/a> v' + JUL.version +
+  ' &amp; <a target="_blank" href="https://vuejs.org/">Vue.js<\/a> v' + Vue.version);
+  </script>
+</div>
+<script type="text/javascript">
+Calc.init();
+</script>
+</body>
+</html>

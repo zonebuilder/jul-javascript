@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.5.6
+	JUL - The JavaScript UI Language version 1.6
 	Copyright (c) 2012 - 2018 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -10,7 +10,7 @@
 */
 /* jshint browser: true, curly: true, eqeqeq: true, expr: true, funcscope: true, immed: true, latedef: true, 
 	onevar: true, newcap: true, noarg: true, node: true, strict: true, trailing: true, undef: true, unused: vars, wsh: true */
-/* globals ample, JUL */
+/* globals JUL */
 
 (function(global) {
 'use strict';
@@ -101,6 +101,7 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 	/**
 		It allows JUL.UI.obj2str() to output the enclosed expression unquoted.
 		It also applies to JUL.UI.creatDom() when setting the element attributes.
+		When using create() method, it will resolve to an object using get() method of the instance.
 		@type	String
 	*/
 	referencePrefix: '=ref:',
@@ -109,6 +110,7 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		@type	String
 	*/
 	tagProperty: 'tag',
+	textProperty: 'text',
 	/**
 		Set this to true to have a top-down instantiation instead of the default bottom-up one
 		@type	Boolean
@@ -270,6 +272,7 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 					return this.create(oItem, oBindings, oParent);
 				}, this);
 			}
+			var oJul = JUL.getInstance(this);
 			var oRoot = {root: oTree};
 			var oRootParent = {root: oParent};
 			var aNodes = [new JUL.Ref({ref: oRoot, key: 'root', parent: oParent ? new JUL.Ref(oRootParent, 'root') : null})];
@@ -339,6 +342,14 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 							}
 						}
 					}
+					if (sType === 'String' && !bInstantiate && sItem !== this.idProperty) {
+						if (oNew[sItem].substr(0, this.referencePrefix.length) === this.referencePrefix && JUL.trim(oNew[sItem].substr(this.referencePrefix.length))) {
+							oNew[sItem] = oJul.get(JUL.trim(oNew[sItem].substr(this.referencePrefix.length)));
+						}
+						else if (oNew[sItem].substr(0, this.referencePrefix.length + 1) === '\\' + this.referencePrefix && JUL.trim(oNew[sItem].substr(this.referencePrefix.length))) {
+							oNew[sItem] = oNew[sItem].substr(1);
+						}
+					}
 				}
 			}
 			aStack = this.topDown ? aStack.concat(aNextNodes) : aNextNodes.concat(aStack);
@@ -404,9 +415,14 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		var oJul = JUL.getInstance(this);
 		var nNS = this.useTags ? -1 : oConfig[this.classProperty].indexOf(':');
 		var sNS = nNS > -1 ? oConfig[this.classProperty].substr(0, nNS) : (this.useTags ? oConfig[this.classProperty] : 'html');
-		var oDocument = this._domDocument ? oJul.get(this._domDocument) : window.document;
-		var bAmple = typeof window.ample === 'object';
-		if (bAmple) { oDocument = window.ample; }
+		var oDocument = this._domDocument ? oJul.get(this._domDocument) : global.document || (global.window ? global.window.document : null);
+		var bAmple = typeof global.ample === 'object';
+		if (bAmple) { oDocument = global.ample; }
+		if ((this.useTags ? oConfig[this.tagProperty] : oConfig[this.classProperty].substr(nNS + 1)) === '#text') {
+			if (oWidget) { oWidget.nodeValue = oConfig.value; }
+			else { oWidget = oDocument.createTextNode(oConfig.value); }
+			return oWidget;
+		}
 		oWidget = oWidget || (sNS === 'html' || typeof oDocument.createElementNS !== 'function' ?
 			oDocument.createElement.apply(oDocument, [nNS > -1 ? oConfig[this.classProperty].substr(nNS + 1) : (this.useTags ? oConfig[this.tagProperty] : oConfig[this.classProperty])].concat(oConfig.is || [])) :
 			oDocument.createElementNS.apply(oDocument, [this.xmlNS[sNS] || null, nNS > -1 ? oConfig[this.classProperty] : sNS + ':' + (this.useTags ? oConfig[this.tagProperty] : oConfig[this.classProperty])].concat(oConfig.is || [] )));
@@ -439,14 +455,10 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		var aInstantiate = this.getMembers(oConfig);
 		for (sItem in oConfig) {
 			if (oConfig.hasOwnProperty(sItem) && aInstantiate.indexOf(sItem) < 0 &&
-				['listeners', this.cssProperty, 'style', this.htmlProperty, this.tagProperty, this.classProperty, this.parentProperty].indexOf(sItem) < 0)
+				['listeners', this.cssProperty, 'style', this.textProperty, this.htmlProperty, this.tagProperty, this.classProperty, this.parentProperty].indexOf(sItem) < 0)
 			{
 				nNS = sItem.indexOf(':');
 				var sAttr = ['Array', 'Date', 'Function', 'Object', 'Null', 'RegExp'].indexOf(JUL.typeOf(oConfig[sItem])) > -1 ? this.obj2str(oConfig[sItem]) : oConfig[sItem];
-				if (this.referencePrefix && typeof oConfig[sItem] === 'string' &&
-					sAttr.substr(0, this.referencePrefix.length) === this.referencePrefix && JUL.trim(sAttr.substr(this.referencePrefix.length))) {
-					sAttr = JUL.trim(sAttr.substr(this.referencePrefix.length));
-				}
 				if (nNS > -1 && typeof oWidget.setAttributeNS === 'function') {
 					oWidget.setAttributeNS(this.xmlNS[sItem.substr(0, nNS)] || null, sItem, sAttr);
 				}
@@ -466,9 +478,13 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 				oWidget.style.cssText = oWidget.style.cssText +';' + oConfig.style;
 			}
 		}
+		if (oConfig[this.textProperty]) {
+			if (bAmple) { global.ample.query(oWidget).text(oConfig[this.textProperty]); }
+			else { oWidget['textContent' in oWidget ? 'textContent' : 'innerText'] = oConfig[this.textProperty]; }
+		}
 		if (oConfig[this.htmlProperty]) {
 			if (bAmple) {
-				ample.query(oWidget).append(oConfig[this.htmlProperty].substr(0, 1) === '<' && oConfig[this.htmlProperty].substr(-1) === '>' ?
+				global.ample.query(oWidget).html(oConfig[this.htmlProperty].substr(0, 1) === '<' && oConfig[this.htmlProperty].substr(-1) === '>' ?
 					oConfig[this.htmlProperty] : '<span>' + oConfig[this.htmlProperty] + '</span>');
 			}
 			else {
@@ -512,24 +528,44 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 	createVDom: function(oConfig) {
 		if (!oConfig) { return null; }
 		var oJul = JUL.getInstance(this);
-		var bCreate = typeof createElement === 'function';
+		var fCreate = this._createElement ? oJul.get(this._createElement) : null;
+		var bCreate = typeof fCreate === 'function';
 		var oDocument = this._domDocument ? oJul.get(this._domDocument) : null;
-		var fCreate = bCreate ? createElement : (oDocument ? oDocument.createElement : null);
+		fCreate = fCreate || (oDocument ? oDocument.createElement : null);
 		if (!fCreate) { return null; }
+		oConfig = JUL.apply({}, oConfig);
 		var sTag = this.useTags ? oConfig[this.tagProperty] : oConfig[this.classProperty];
 		if (typeof sTag === 'string') {
-			var aTag = sTag.split('.', 2);
-			if (aTag.length > 1 && this._regExps.variable.test(aTag[0])) {
-				sTag = oJul.get(sTag);
+			if (sTag.split(':').pop() === '#text') {
+				return oConfig.value;
 			}
-			else if (this.useTags && oConfig[this.classProperty] !== this.defaultClass) {
+			if (this.useTags && oConfig[this.classProperty] !== this.defaultClass) {
 				sTag = oConfig[this.classProperty] + ':' + sTag;
 			}
 		}
 		delete oConfig[this.classProperty];
 		delete oConfig[this.tagProperty];
 		var aChildren = [];
-		if (oConfig[this.htmlProperty]) { aChildren.push(oConfig[this.htmlProperty]); }
+		if (oConfig[this.textProperty]) {
+			aChildren.push(oConfig[this.textProperty]);
+		}
+		delete oConfig[this.textProperty];
+		if (oConfig[this.htmlProperty]) { 
+			if (typeof oConfig[this.htmlProperty] === 'string') {
+				try {
+				this._createDiv = this._createDiv || (global.document || (global.window ? global.window.document : null)).createElement('div');
+				this._createDiv.innerHTML = oConfig[this.htmlProperty].replace(/<script(\s|\S)+?\/script>/g, '');
+				oConfig[this.htmlProperty] = this.xml2jul(this._createDiv, false, true)[this.childrenProperty] || [];
+				this._createDiv.innerHTML = '';
+				}
+				catch (e0) {
+					aChildren = [oConfig[this.htmlProperty]];
+				}
+			}
+			if (typeof oConfig[this.htmlProperty] === 'object') {
+				aChildren = [].concat(this.create(oConfig[this.htmlProperty]));
+			}
+		}
 		delete oConfig[this.htmlProperty];
 		if (oConfig[this.cssProperty]) { oConfig.className = oConfig[this.cssProperty]; }
 		delete oConfig[this.cssProperty];
@@ -538,11 +574,12 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		for (var sItem in oConfig) {
 			if (oConfig.hasOwnProperty(sItem) && typeof oConfig[sItem] === 'string' &&
 				oConfig[sItem].substr(0, 2) === '{<' && oConfig[sItem].substr(-2) === '>}') {
-				oConfig[sItem] = this.create(this.xml2jul(oConfig[sItem].slice(1, -1)));
+				oConfig[sItem] = this.xml2jul('<' + 'div>' + oConfig[sItem].slice(1, -1) + '<' + '/div>')[this.childrenProperty];
+				if (oConfig[sItem].length < 2) { oConfig[sItem] = oConfig[sItem][0]; }
+				oConfig[sItem] = this.create(oConfig[sItem]);
 			}
 		}
 		if (!aChildren.length) { aChildren = null; }
-		else if (aChildren.length < 2) { aChildren = aChildren[0]; }
 		return bCreate ? fCreate(sTag, oConfig, aChildren) : fCreate.call(oDocument, sTag, oConfig, aChildren);
 	},
 	/**
@@ -744,10 +781,21 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 							bPrefix = true;
 							sItem = sItem.substr(this._jsonPrefixes.regex.length).replace(/^\s+/, '');
 						}
+						if (this._usePrefixes) {
+							for (var sWhat in this._jsonPrefixes) {
+								if (this._jsonPrefixes.hasOwnProperty(sWhat) &&
+									sItem.substr(0, this._jsonPrefixes[sWhat].length + 1) === '\\' + this._jsonPrefixes[sWhat]) {
+									sItem = sItem.substr(1);
+								}
+							}
+						}
 						if (this.referencePrefix && sItem.substr(0, this.referencePrefix.length) === this.referencePrefix &&
 							JUL.trim(sItem.substr(this.referencePrefix.length))) {
 							bPrefix = true;
 							sItem = sItem.substr(this.referencePrefix.length).replace(/^\s+/, '');
+						}
+						if (this.referencePrefix && sItem.substr(0, this.referencePrefix.length + 1) === '\\' + this.referencePrefix) {
+							sItem = sItem.substr(1);
 						}
 						sContent = sContent + (bPrefix || (!this._usePrefixes && this._regExps.regexp.test(sItem)) ?
 							sItem : (this._useDoubleQuotes ? sData.substr(nStart, i - nStart + 1) :
@@ -825,8 +873,30 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		@param	{Boolean}	[bReturnString]	Whether to serialize converted object to JavaScript code
 		@returns	{Object}	JUL.UI config tree or its JavaScript code
 	*/
-	xml2jul: function(oXml, bReturnString) {
+	xml2jul: function(oXml, bReturnString, bTextNodes) {
 		if (typeof oXml !== 'object') {
+			try {
+			var sXml = oXml.replace(/&(lt|gt|amp);/g, ';;;;~;$1;').replace(/&(#?\w+;)/g, ';;;;0;$1').replace(/[<>&]/g, function(sMatch) {
+				switch (sMatch) {
+				case '<': return ';;;;1;';
+				case '>': return ';;;;2;';
+				case '&': return ';;;;3;';
+				}
+				return sMatch;
+			}).replace(/;{4}0;/g, '&');
+			this._divEncode = this._divEncode || (global.document || (global.window ? global.window.document : null)).createElement('div');
+			this._divEncode.innerHTML = sXml;
+			oXml = (this._divEncode.textContent || this._divEncode.innerText || '').replace(/;{4}\d;/g, function(sMatch) {
+				switch (parseInt(sMatch.substr(4, 1))) {
+				case 1: return '<';
+				case 2: return '>';
+				case 3: return '&amp;';
+				}
+				return sMatch;
+			}).replace(/;{4}~;/g, '&');
+			this._divEncode.innerHTML = '';
+			}
+			catch (e0) {}
 			oXml = this._createXml(oXml);
 		}
 		if (oXml.error) {
@@ -853,6 +923,10 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 					oData[bNoTag ? this.classProperty : this.tagProperty] = oNode.nodeName;
 				}
 			}
+			if (oNode.nodeType === 3) {
+				oData.value = oNode.nodeValue;
+				return;
+			}
 			for (var i = 0; i < oNode.attributes.length; i++) {
 				var oAttribute = oNode.attributes[i];
 				if (oAttribute.name.substr(0, 5) !== 'xmlns') { 
@@ -861,9 +935,16 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 						JSON.parse(oAttribute.value) : oAttribute.value;
 				}
 			}
-			if (oNode.childNodes.length && oNode.firstChild.nodeType === 3 &&
+			if (!bTextNodes && oNode.childNodes.length && oNode.firstChild.nodeType === 3 &&
 				JUL.trim(oNode.firstChild.nodeValue)) {
-				oData[this.htmlProperty] = oNode.firstChild.nodeValue;
+				oData[this.htmlProperty] = oNode.firstChild.nodeValue.replace(/[<>&]/g, function(sMatch) {
+					switch (sMatch) {
+					case '<': return '&lt;';
+					case '>': return '&gt;';
+					case '&': return '&amp;';
+					}
+					return sMatch;
+				});
 			}
 			var aNames = [];
 			var oRepeat = {};
@@ -880,17 +961,17 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 			}
 			for (i = 0; i < oNode.childNodes.length; i++) {
 				oChild = oNode.childNodes[i];
-				if (oChild.nodeType === 1) {
+				if (oChild.nodeType === 1 || (bTextNodes && oChild.nodeType === 3)) {
 					nNS = oChild.nodeName.indexOf(':');
 					var sTag = !bNoTag && nNS > -1 && this.defaultClass === oChild.nodeName.substr(0, nNS) ?
 						oChild.nodeName.substr(nNS + 1) : oChild.nodeName;
-					if (!oRepeat[oChild.nodeName] &&
+					if (oChild.nodeType === 1 && !oRepeat[oChild.nodeName] &&
 						[].concat(this.childrenProperty, this.membersProperties || []).indexOf(sTag) > -1) {
 						var aMembers = [];
 						oData[sTag] = aMembers;
 						for (var k = 0; k < oChild.childNodes.length; k++) {
 							var oGrandChild = oChild.childNodes[k];
-							if (oGrandChild.nodeType === 1) {
+							if (oGrandChild.nodeType === 1 || (bTextNodes && oGrandChild.nodeType === 3)) {
 								aMembers.push({});
 								dom2jul.call(this, aMembers[aMembers.length - 1], oGrandChild, bNoTag);
 							}
@@ -905,15 +986,28 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 				}
 			}
 		};
-		dom2jul.call(this, oData, oXml.documentElement, !this.useTags);
+		if (oXml.documentElement) { oXml = oXml.documentElement; }
+		dom2jul.call(this, oData, oXml, !this.useTags);
 		return bReturnString ? this.obj2str(oData) : oData;
 	},
+	/**
+		Reference to a createElement() function used in Virtual DOM
+		@type	Function
+		@private
+	*/
+	_createElement: null,
 	/**
 		May be set to a custom document object to use createDom() for various DOM implementations
 		@type	Object
 		@private
 	*/
 	_domDocument: null,
+	/**
+		It can be set to a user defined DOM Parser instance
+		@type	Object
+		@private
+	*/
+	_domParser: null,
 	/**
 		May be set to a 'include' merging function used globally by the parser.
 		See JUL.UI.include() parameters.
@@ -996,8 +1090,9 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		@private
 	*/
 	_createXml: function(sXml) {
-		if (typeof DOMParser === 'function') {
-			this._xmlParser = this._xmlParser || new DOMParser();
+		var DomParser = this._domParser || global.DOMParser;
+		if (typeof DomParser === 'function') {
+			this._xmlParser = this._xmlParser || new DomParser();
 			try {
 				return this._xmlParser.parseFromString(sXml, 'application/xml');
 			}
@@ -1006,7 +1101,7 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 			}
 		}
 		else {
-			this._xmlParser = this._xmlParser || new ActiveXObject('Msxml2.DOMDocument.3.0');
+			this._xmlParser = this._xmlParser || new global.ActiveXObject('Msxml2.DOMDocument.3.0');
 			 this._xmlParser.async = false;
 			 this._xmlParser.loadXML(sXml);
 			return  this._xmlParser; 

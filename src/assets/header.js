@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.5.6
+	JUL - The JavaScript UI Language version 1.6
 	Copyright (c) 2012 - 2018 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPLv2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -99,4 +99,4 @@
 */
 /* jshint browser: true, curly: true, eqeqeq: true, expr: true, funcscope: true, immed: true, latedef: true, 
 	onevar: true, newcap: true, noarg: true, node: true, strict: true, trailing: true, undef: true, unused: vars, wsh: true */
-/* globals ample, JUL: true */
+/* globals JUL: true */

@@ -1,3 +1,9 @@
+v1.6 (2018-10-31):
+  * added React & Vue.js examples
+  * enhanced createVDom() faactory
+  * JUL.UI.referencePrefix is now also used inside create() method to resolve to existing objects like JUL.get() does
+  * JUL.UI.xml2jul() processes HTML entities
+  * various improvments, see API docs & source code
 v1.5.6 (2018-09-25):
   * added createVDom() custom factory to ease using JUL config trees inside your render() function
 v1.5.5 (2018-09-15):

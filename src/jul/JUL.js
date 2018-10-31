@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.5.6
+	JUL - The JavaScript UI Language version 1.6
 	Copyright (c) 2012 - 2018 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -122,7 +122,7 @@ JUL = {
 		JUL version
 		@type	String
 	*/
-	version: '1.5.6',
+	version: '1.6',
 	/**
 		Creates instances of the JUL global, which can be used as local variables.
 		E.g. <code>var oInstance = new JUL.Instance({nsRoot: myLocalVar});</code>
@@ -131,7 +131,7 @@ JUL = {
 		<li>ref - the same as JUL.Ref() factory</li>
 		<li>parser - shortcut to this.ui.Parser() factory</li></ul>
 		@class	A class for creating instances of the main JUL object
-		@param	{Object}	[oConfig]	Configuration object
+		@param	{Object}	[oConfig]	Configuration object or an object to use as 'nsRoot'
 	*/
 	Instance: function(oConfig) {
 		if (!(this instanceof JUL.Instance)) { return new JUL.Instance(oConfig); }
