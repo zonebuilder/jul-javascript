@@ -1,3 +1,5 @@
+v1.6.1 (2018-11-10):
+  * added textProperty to the parser and '#text' tag support to createDom() and to createVDom() factories
 v1.6 (2018-10-31):
   * added React & Vue.js examples
   * enhanced createVDom() faactory

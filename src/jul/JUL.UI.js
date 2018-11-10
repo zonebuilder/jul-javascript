@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.6
+	JUL - The JavaScript UI Language version 1.6.1
 	Copyright (c) 2012 - 2018 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -342,12 +342,13 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 							}
 						}
 					}
-					if (sType === 'String' && !bInstantiate && sItem !== this.idProperty) {
-						if (oNew[sItem].substr(0, this.referencePrefix.length) === this.referencePrefix && JUL.trim(oNew[sItem].substr(this.referencePrefix.length))) {
-							oNew[sItem] = oJul.get(JUL.trim(oNew[sItem].substr(this.referencePrefix.length)));
-						}
-						else if (oNew[sItem].substr(0, this.referencePrefix.length + 1) === '\\' + this.referencePrefix && JUL.trim(oNew[sItem].substr(this.referencePrefix.length))) {
+					if (sType === 'String' && this.referencePrefix && !bInstantiate && sItem !== this.idProperty) {
+						var sPrefix = oNew[sItem].substr(0, this.referencePrefix.length + 1);
+						if (sPrefix === '\\' + this.referencePrefix) {
 							oNew[sItem] = oNew[sItem].substr(1);
+						}
+						else if (sPrefix.substr(0, this.referencePrefix.length) === this.referencePrefix && JUL.trim(oNew[sItem].substr(this.referencePrefix.length))) {
+							oNew[sItem] = oJul.get(JUL.trim(oNew[sItem].substr(this.referencePrefix.length)));
 						}
 					}
 				}
@@ -567,8 +568,12 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 			}
 		}
 		delete oConfig[this.htmlProperty];
-		if (oConfig[this.cssProperty]) { oConfig.className = oConfig[this.cssProperty]; }
+		if (oConfig[this.cssProperty]) {
+			if (typeof oConfig[this.cssProperty] === 'string') { oConfig.className = oConfig[this.cssProperty]; }
+			else { oConfig['class'] = oConfig[this.cssProperty]; }
+		}
 		delete oConfig[this.cssProperty];
+		var bObject = JUL.typeOf(oConfig[this.childrenProperty]) === 'Object';
 		aChildren = aChildren.concat(oConfig[this.childrenProperty] || []);
 		delete oConfig[this.childrenProperty];
 		for (var sItem in oConfig) {
@@ -580,6 +585,7 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 			}
 		}
 		if (!aChildren.length) { aChildren = null; }
+		else if (aChildren.length < 2 && (bObject || typeof aChildren[0] === 'string')) { aChildren = aChildren[0]; }
 		return bCreate ? fCreate(sTag, oConfig, aChildren) : fCreate.call(oDocument, sTag, oConfig, aChildren);
 	},
 	/**
