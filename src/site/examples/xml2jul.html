@@ -108,9 +108,17 @@
 			<label for="checkbox-compact" class="head-label">Auto-compact JUL</label>
 			<input id="checkbox-compact" type="checkbox" class="head-checkbox" />
 		</div>
+		<div class="head-field">
+			<label class="head-label">Input type</label>
+			<input id="radio-xml" type="radio" name="radio-type" onclick="APP.inputType='XML'" checked="checked" />
+			<label for="radio-xml"> XML</label>
+			&nbsp;&nbsp;&nbsp;
+			<input id="radio-html" type="radio" name="radio-type" onclick="APP.inputType='HTML'" />
+			<label for="radio-html"> HTML</label>
+		</div>
 		<div id="center">
 			<div class="column">
-				<label for="textarea-xml" class="column-label">XML</label>
+				<label for="textarea-xml" class="column-label">XML/HTML</label>
 				<textarea id="textarea-xml" class="column-textarea" wrap="off"></textarea>
 			</div>
 			<div class="column">
@@ -139,11 +147,13 @@
 	JUL.ns('APP.ui');
 	JUL.apply(APP, {
 		version: '1.0',
+		// input type XML or HTML
+		inputType: 'XML',
 		// converts the XML from 'textarea-xml' to JUL in 'textarea-jul'
 		convert: function() {
 			var sXml = document.getElementById('textarea-xml').value;
 			if (!sXml) {
-				alert('Paste some XML');
+				alert('Paste some ' + this.inputType);
 				return;
 			}
 			// workaround - Mozilla rejects creating DOM for a XUL XML
@@ -162,7 +172,7 @@
 			var bQuote = document.getElementById('checkbox-quote').checked;
 			var bAuto = document.getElementById('checkbox-compact').checked;
 			// call the conversion
-			var oJul = oParser.xml2jul(sXml);
+			var oJul = this.inputType === 'XML' ? oParser.xml2jul(sXml) : oParser.html2jul(sXml);
 			oParser.membersProperties = JUL.trim(document.getElementById('text-other-members').value) ?
 			document.getElementById('text-other-members').value.split(',').map(JUL.trim) : [];
 			// compact the result if 'membersProperties' are specified 

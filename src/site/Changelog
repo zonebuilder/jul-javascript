@@ -1,3 +1,7 @@
+v1.6.5 (2019-08-28):
+  * enhanced dotted path syntax with JavaScript bracket notation e.g. 'a[0].b[1].cd.e[f][g]' <=> 'a.0.b.1.cd.e.f.g'
+  * added JUL.UI.html2jul() that accepts current document HTML syntax for conversion
+  * updated XML2JUL example to convert either from XML or from HTML
 v1.6.1 (2018-11-10):
   * added textProperty to the parser and '#text' tag support to createDom() and to createVDom() factories
 v1.6 (2018-10-31):
