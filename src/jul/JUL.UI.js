@@ -1,5 +1,5 @@
 /*
-	JUL - The JavaScript UI Language version 1.6.5
+	JUL - The JavaScript UI Language version 1.6.7
 	Copyright (c) 2012 - 2019 The Zonebuilder <zone.builder@gmx.com>
 	http://sourceforge.net/projects/jul-javascript/
 	Licenses: GNU GPL2 or later; GNU LGPLv3 or later (http://sourceforge.net/p/jul-javascript/wiki/License/)
@@ -33,6 +33,11 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		@type	String
 	*/
 	bindingProperty: 'cid',
+	/**
+		If enabled, boolean config props passed to JUL.UI.createDom() will be regarded as HTML5 boolean attributes
+		@type	Boolean
+	*/
+	booleanAttrs: false,
 	/**
 		The name of the children property in the config tree
 		@type	String
@@ -424,7 +429,7 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 			else { oWidget = oDocument.createTextNode(oConfig.value); }
 			return oWidget;
 		}
-		oWidget = oWidget || (sNS === 'html' || typeof oDocument.createElementNS !== 'function' ?
+		oWidget = oWidget || (sNS === 'html' || typeof oDocument.createElementNS !== 'function' && this.xmlNS[sNS] ?
 			oDocument.createElement.apply(oDocument, [nNS > -1 ? oConfig[this.classProperty].substr(nNS + 1) : (this.useTags ? oConfig[this.tagProperty] : oConfig[this.classProperty])].concat(oConfig.is || [])) :
 			oDocument.createElementNS.apply(oDocument, [this.xmlNS[sNS] || null, nNS > -1 ? oConfig[this.classProperty] : sNS + ':' + (this.useTags ? oConfig[this.tagProperty] : oConfig[this.classProperty])].concat(oConfig.is || [] )));
 		if (!oWidget) { return null; }
@@ -460,7 +465,11 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 			{
 				nNS = sItem.indexOf(':');
 				var sAttr = ['Array', 'Date', 'Function', 'Object', 'Null', 'RegExp'].indexOf(JUL.typeOf(oConfig[sItem])) > -1 ? this.obj2str(oConfig[sItem]) : oConfig[sItem];
-				if (nNS > -1 && typeof oWidget.setAttributeNS === 'function') {
+				if (this.booleanAttrs && typeof oConfig[sItem] === 'boolean') {
+					if (oConfig[sItem]) { sAttr = ''; }
+					else { continue; }
+				}
+				if (nNS > -1 && typeof oWidget.setAttributeNS === 'function' && this.xmlNS[sItem.substr(0, nNS)]) {
 					oWidget.setAttributeNS(this.xmlNS[sItem.substr(0, nNS)] || null, sItem, sAttr);
 				}
 				else {
@@ -579,7 +588,7 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		for (var sItem in oConfig) {
 			if (oConfig.hasOwnProperty(sItem) && typeof oConfig[sItem] === 'string' &&
 				oConfig[sItem].substr(0, 2) === '{<' && oConfig[sItem].substr(-2) === '>}') {
-				oConfig[sItem] = this.xml2jul('<' + 'div>' + oConfig[sItem].slice(1, -1) + '<' + '/div>')[this.childrenProperty];
+				oConfig[sItem] = this.xml2jul('<' + 'div>' + oConfig[sItem].slice(1, -1) + '<' + '/div>', false, true)[this.childrenProperty];
 				if (oConfig[sItem].length < 2) { oConfig[sItem] = oConfig[sItem][0]; }
 				oConfig[sItem] = this.create(oConfig[sItem]);
 			}
@@ -665,24 +674,27 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		Converts a HTML string/DOM to a JUL.UI config tree or to JavaScript code, using the current document
 		@param	{Object}	oXml	DOM XML object or XML string to convert
 		@param	{Boolean}	[bReturnString]	Whether to serialize converted object to JavaScript code
-		@param	{Boolean}	[bTextNodes]	Parameter description
-		@returns	{Object}	JUL.UI config tree or its JavaScript code
+		@param	{Boolean}	[bTextNodes]	Whether to export text nodes as standalone JUL objects
+		@returns	{Object|Array}	JUL.UI config tree or its JavaScript code
 	*/
 	html2jul: function(oXml, bReturnString, bTextNodes) {
 		this._divEncode = this._divEncode || (global.document || (global.window ? global.window.document : null)).createElement('div');
 		if (typeof oXml !== 'object') {
+			oXml = JUL.trim(oXml);
 			this._divEncode.innerHTML = oXml.replace(this._regExps.xss, '');
-			oXml = [].slice.call(this._divEncode.childNodes);
+			oXml = [].slice.call(this._divEncode.childNodes || []);
 		}
 		oXml = [].concat(oXml);
 		var aJul = [];
 		for (var i = 0; i < oXml.length; i++) {
-			if (oXml[i].nodeType !== 1) { continue; }
-			aJul.push(this.xml2jul(oXml[i], bReturnString, bTextNodes, true));
+			if (oXml[i].nodeType === 1 || (bTextNodes && oXml[i].nodeType === 3)) {
+				aJul.push(this.xml2jul(oXml[i], false, bTextNodes, true));
+			}
 		}
 		this._divEncode.innerHTML = '';
 		if (!aJul.length) { return this.xml2jul(null, bReturnString); }
-		return aJul.length < 2 ? aJul[0] : aJul;
+		if (aJul.length < 2) { aJul = aJul[0]; }
+		return bReturnString ? this.obj2str(aJul) : aJul;
 	},
 	/**
 		Does explicit object inheritance based on a predefined object property
@@ -900,7 +912,7 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 		Converts a XML string/DOM to a JUL.UI config tree or to JavaScript code
 		@param	{Object}	oXml	DOM XML object or XML string to convert
 		@param	{Boolean}	[bReturnString]	Whether to serialize converted object to JavaScript code
-		@param	{Boolean}	[bTextNodes]	Parameter description
+		@param	{Boolean}	[bTextNodes]	Whether to export text nodes as standalone JUL objects
 		@param	{Boolean}	[bLowerTags]	Force tag names to be converted to lowercase
 		@returns	{Object}	JUL.UI config tree or its JavaScript code
 	*/
@@ -945,7 +957,7 @@ jul.apply(jul.get('JUL.UI'), /** @lends JUL.UI */ {
 			if (oNode.nodeName === 'parsererror') {
 				oData.error = oNode.textContent;
 				return;
-				}
+			}
 			var nNS = oNode.nodeName.indexOf(':');
 			if (!bNoTag && nNS > -1) {
 				if (this.defaultClass !== _t(oNode.nodeName).substr(0, nNS)) {

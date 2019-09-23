@@ -1,3 +1,6 @@
+v1.6.7 (2019-09-23):
+  * consistency between JUL.UI.html2jul() and JUL.UI.xml2jul()
+  * JUL.UI.createDom(): support for unknown namespaces, support for HTML5 like boolean attributes - see JUL.UI.booleanAttrs
 v1.6.5 (2019-08-28):
   * enhanced dotted path syntax with JavaScript bracket notation e.g. 'a[0].b[1].cd.e[f][g]' <=> 'a.0.b.1.cd.e.f.g'
   * added JUL.UI.html2jul() that accepts current document HTML syntax for conversion
