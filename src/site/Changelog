@@ -1,3 +1,5 @@
+v1.6.8 (2020-02-10):
+  * fixed fDecorator parameter of JUL.UI.obj2str(), escaping square brackets in the passed path
 v1.6.7 (2019-09-23):
   * consistency between JUL.UI.html2jul() and JUL.UI.xml2jul()
   * JUL.UI.createDom(): support for unknown namespaces, support for HTML5 like boolean attributes - see JUL.UI.booleanAttrs

@@ -1,6 +1,6 @@
 {
   "name": "jul-src",
-  "version": "1.6.7",
+  "version": "1.6.8",
   "description": "JUL - The JavaScript UI Language",
   "main": "index.html",
   "scripts": {
@@ -22,16 +22,17 @@
   },
   "homepage": "https://github.com/zonebuilder/jul-javascript#readme",
   "devDependencies": {
-    "gulp": "3.x",
-    "gulp-add-src": "0.x",
-    "gulp-clean": "0.x",
-    "gulp-concat": "2.x",
-    "gulp-jshint": "2.x",
-    "gulp-load-plugins": "1.x",
-    "gulp-strip-comments": "2.4.x",
-    "gulp-uglify": "2.x",
-    "jsdoc2": "2.x",
-    "jshint": "2.x",
-    "pump": "1.x"
+    "gulp": "^3.x",
+    "gulp-add-src": "^0.x",
+    "gulp-clean": "^0.x",
+    "gulp-concat": "^2.x",
+    "gulp-jshint": "^2.x",
+    "gulp-load-plugins": "^1.x",
+    "gulp-replace": "^1.0.x",
+    "gulp-strip-comments": "^2.4.x",
+    "gulp-uglify": "^2.x",
+    "jsdoc2": "^2.x",
+    "jshint": "^2.x",
+    "pump": "^1.x"
   }
 }

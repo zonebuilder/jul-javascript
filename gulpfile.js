@@ -8,7 +8,7 @@ var oConfig = {
 	minHeader: 'src/assets/header-min.js',
 	minName: 'jul.min.js',
 	minDest: 'build/js',
-	jsdoc: 'node "../../node_modules/jsdoc2/app/run.js" -d="../../build/docs" -D="noGlobal:true" -D="title:JUL 1.6.7 API Reference" -D="index:files" -D="copyright:true" -t="../jsdoc-templates/codeview" -p .',
+	jsdoc: 'node "../../node_modules/jsdoc2/app/run.js" -d="../../build/docs" -D="noGlobal:true" -D="title:JUL 1.6.8 API Reference" -D="index:files" -D="copyright:true" -t="../jsdoc-templates/codeview" -p .',
 	jsdocFrom: 'src/jul',
 	copyNode: ['build/**', '!build/Readme', '!build/index.html', '!build/data/**', '!build/examples/**', '!build/js/**',
 		 '!build/media/**', '!build/data', '!build/examples', '!build/js', '!build/media',
@@ -31,10 +31,12 @@ oGulp.task('scripts', function() {
 	.pipe(oPlugins.stripComments())
 	.pipe(oPlugins.addSrc.prepend(oConfig.concatHeader))
 	.pipe(oPlugins.concat(oConfig.concatName, {newLine: ''}))
+	.pipe(oPlugins.replace('\t', '  '))
 	.pipe(oGulp.dest(oConfig.concatDest))
 	.pipe(oPlugins.uglify())
 	.pipe(oPlugins.addSrc.prepend(oConfig.minHeader))
 	.pipe(oPlugins.concat(oConfig.minName, {newLine: ''}))
+	.pipe(oPlugins.replace('\t', '  '))
 	.pipe(oGulp.dest(oConfig.minDest));
 });
 
